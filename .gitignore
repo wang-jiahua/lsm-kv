@@ -1,0 +1,6 @@
+correctness
+persistence
+*.o
+*.pdf
+*.pptx
+.vscode

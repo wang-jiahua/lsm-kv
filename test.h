@@ -16,24 +16,23 @@ protected:
     uint64_t nr_passed_phases;
 
 #define EXPECT(exp, got) expect<decltype(got)>((exp), (got), __FILE__, __LINE__)
-    template <typename T>
-    void expect(const T& exp, const T& got,
-        const std::string& file, int line)
-    {
+
+    template<typename T>
+    void expect(const T &exp, const T &got,
+                const std::string &file, int line) {
         ++nr_tests;
         if (exp == got) {
             ++nr_passed_tests;
             return;
         }
         if (verbose) {
-            std::cerr << "TEST Error @" << file << ":" << line;
-            std::cerr << ", expected " << exp;
-            std::cerr << ", got " << got << std::endl;
+            std::cout << "TEST Error @" << file << ":" << line;
+            std::cout << ", expected " << exp;
+            std::cout << ", got " << got << std::endl;
         }
     }
 
-    void phase(void)
-    {
+    void phase(void) {
         // Report
         std::cout << "  Phase " << (nr_phases + 1) << ": ";
         std::cout << nr_passed_tests << "/" << nr_tests << " ";
@@ -53,8 +52,7 @@ protected:
         nr_passed_tests = 0;
     }
 
-    void report(void)
-    {
+    void report(void) {
         std::cout << nr_passed_phases << "/" << nr_phases << " passed.";
         std::cout << std::endl;
         std::cout.flush();
@@ -64,22 +62,21 @@ protected:
     }
 
     class KVStore store;
+
     bool verbose;
 
 public:
-    Test(const std::string& dir, bool v = true)
-        : store(dir)
-        , verbose(v)
-    {
+    Test(const std::string &dir, bool v = true)
+            : store(dir), verbose(v) {
         nr_tests = 0;
         nr_passed_tests = 0;
         nr_phases = 0;
         nr_passed_phases = 0;
     }
 
-    virtual void start_test(void* args = NULL)
-    {
+    virtual void start_test(void *args = NULL) {
         std::cout << "No test is implemented." << std::endl;
     }
 };
+
 const std::string Test::not_found = "";

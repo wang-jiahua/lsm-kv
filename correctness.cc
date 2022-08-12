@@ -9,8 +9,7 @@ private:
     const uint64_t SIMPLE_TEST_MAX = 512;
     const uint64_t LARGE_TEST_MAX = 1024 * 64;
 
-    void regular_test(uint64_t max)
-    {
+    void regular_test(uint64_t max) {
         uint64_t i;
 
         // Test a single key
@@ -41,7 +40,7 @@ private:
 
         for (i = 0; i < max; ++i)
             EXPECT((i & 1) ? std::string(i + 1, 's') : not_found,
-                store.get(i));
+                   store.get(i));
 
         for (i = 1; i < max; ++i)
             EXPECT(i & 1, store.del(i));
@@ -52,13 +51,11 @@ private:
     }
 
 public:
-    CorrectnessTest(const std::string& dir, bool v = true)
-        : Test(dir, v)
-    {
+    CorrectnessTest(const std::string &dir, bool v = true)
+            : Test(dir, v) {
     }
 
-    void start_test(void* args = NULL) override
-    {
+    void start_test(void *args = nullptr) override {
         std::cout << "KVStore Correctness Test" << std::endl;
 
         std::cout << "[Simple Test]" << std::endl;
@@ -69,8 +66,7 @@ public:
     }
 };
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char *argv[]) {
     bool verbose = (argc == 2 && std::string(argv[1]) == "-v");
 
     std::cout << "Usage: " << argv[0] << " [-v]" << std::endl;
