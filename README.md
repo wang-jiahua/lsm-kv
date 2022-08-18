@@ -2,22 +2,33 @@
 
 Project for SJTU SE2322 Advanced Data Structure
 
-## Usage
+## Build
 
-These tests may require about 10 GB space. 
+```sh
+~/lsm-kv$ mkdir build
+~/lsm-kv$ cd build
+~/lsm-kv/build$ cmake ..
+~/lsm-kv/build$ make
+```
+
+## Test
+
+The following tests may require about 10 GB space. 
 
 ### Correctness Test
 
 ```sh
-$ make correctness
+~/lsm-kv/build$ make correctness
+~/lsm-kv/build$ rm -rf data
 ```
 
 ### Persistence Test
 
 ```sh
-$ make persistence
+~/lsm-kv/build$ make persistence
 # kill the process following the prompt
-$ make persistence -t
+~/lsm-kv/build$ make persistence -t
+~/lsm-kv/build$ rm -rf data
 ```
 
 ## TODO
