@@ -7,7 +7,7 @@
 class CorrectnessTest : public Test {
 private:
     const uint64_t SIMPLE_TEST_MAX = 512;
-    const uint64_t LARGE_TEST_MAX = 1024 * 64;
+    const uint64_t LARGE_TEST_MAX = 1024 * 8;
 
     void regular_test(uint64_t max) {
         uint64_t i;
@@ -51,7 +51,7 @@ private:
     }
 
 public:
-    CorrectnessTest(const std::string &dir, bool v = true)
+    explicit CorrectnessTest(const std::string &dir, bool v = true)
             : Test(dir, v) {
     }
 

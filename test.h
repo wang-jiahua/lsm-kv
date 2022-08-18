@@ -32,7 +32,7 @@ protected:
         }
     }
 
-    void phase(void) {
+    void phase() {
         // Report
         std::cout << "  Phase " << (nr_phases + 1) << ": ";
         std::cout << nr_passed_tests << "/" << nr_tests << " ";
@@ -52,7 +52,7 @@ protected:
         nr_passed_tests = 0;
     }
 
-    void report(void) {
+    void report() {
         std::cout << nr_passed_phases << "/" << nr_phases << " passed.";
         std::cout << std::endl;
         std::cout.flush();
@@ -66,7 +66,7 @@ protected:
     bool verbose;
 
 public:
-    Test(const std::string &dir, bool v = true)
+    explicit Test(const std::string &dir, bool v = true)
             : store(dir), verbose(v) {
         nr_tests = 0;
         nr_passed_tests = 0;
@@ -74,9 +74,9 @@ public:
         nr_passed_phases = 0;
     }
 
-    virtual void start_test(void *args = NULL) {
+    virtual void start_test(void *args = nullptr) {
         std::cout << "No test is implemented." << std::endl;
     }
 };
 
-const std::string Test::not_found = "";
+const std::string Test::not_found;

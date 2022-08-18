@@ -27,7 +27,7 @@ class Disk {
 private:
     static const int maxLevel = 20;
 
-    uint64_t maxFileNums[maxLevel];
+    uint64_t maxFileNums[maxLevel]{};
 
     const uint64_t MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
@@ -35,7 +35,7 @@ public:
 
     Disk();
 
-    std::string get(int level, uint64_t filename, uint64_t offset, uint64_t length) const;
+    [[nodiscard]] std::string get(int level, uint64_t filename, uint64_t offset, uint64_t length) const;
 
     void put(int level, const Data &data, Index &index);
 
@@ -44,5 +44,5 @@ public:
 private:
     void compact(Index &index, int level);
 
-    bool inRange(uint64_t lower, uint64_t upper, const Range &range) const;
+    static bool inRange(uint64_t lower, uint64_t upper, const Range &range);
 };

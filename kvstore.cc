@@ -7,7 +7,7 @@ KVStore::KVStore(const std::string &dir) : KVStoreAPI(dir) {
     index.recover();
 }
 
-KVStore::~KVStore() {}
+KVStore::~KVStore() = default;
 
 /**
  * Insert/Update the key-value pair.

@@ -3,6 +3,7 @@
 #include "data.h"
 #include <cstring>
 #include <string>
+#include <utility>
 
 constexpr int maxLevel = 20;
 
@@ -14,8 +15,8 @@ class SkipList {
         int level;
         bool deleted;
 
-        Node(uint64_t _key, const std::string &s, int _level, bool _deleted = false)
-                : key(_key), value(s), level(_level), deleted(_deleted) {
+        Node(uint64_t _key, std::string s, int _level, bool _deleted = false)
+                : key(_key), value(std::move(s)), level(_level), deleted(_deleted) {
             forward = new Node *[level + 1];
             memset(forward, 0, (level + 1) * sizeof(Node *));
         }
@@ -28,7 +29,7 @@ private:
     int level;
     uint64_t size;
 
-    int randomLevel();
+    static int getRandomLevel();
 
 public:
     SkipList();
@@ -45,7 +46,7 @@ public:
 
     void print() const;
 
-    uint64_t getSize() const;
+    [[nodiscard]] uint64_t getSize() const;
 
-    Data traverse() const;
+    [[nodiscard]] Data traverse() const;
 };

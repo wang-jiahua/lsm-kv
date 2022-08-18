@@ -1,7 +1,7 @@
 #include "skiplist.h"
 #include <climits>
 #include <iostream>
-#include <stdlib.h>
+#include <random>
 
 SkipList::SkipList() {
     head = new Node(ULLONG_MAX, std::string(), maxLevel);
@@ -11,9 +11,12 @@ SkipList::SkipList() {
 
 SkipList::~SkipList() { reset(); }
 
-int SkipList::randomLevel() {
+int SkipList::getRandomLevel() {
+    std::random_device seed;
+    std::ranlux48 engine(seed());
+    std::uniform_int_distribution<unsigned> distribution(0, UINT32_MAX);
     int level = 0;
-    while (rand() % 2 && level < maxLevel) {
+    while (distribution(engine) % 2 && level < maxLevel) {
         ++level;
     }
     return level;
@@ -41,17 +44,17 @@ void SkipList::put(uint64_t key, const std::string &s) {
         return;
     }
     // if key doesn't exist, insert a new node
-    int randomlevel = randomLevel();
-    Node *node = new Node(key, s, randomlevel);
+    int randomLevel = getRandomLevel();
+    Node *node = new Node(key, s, randomLevel);
 
-    if (randomlevel > level) {
-        for (int i = level + 1; i <= randomlevel; ++i) {
+    if (randomLevel > level) {
+        for (int i = level + 1; i <= randomLevel; ++i) {
             update[i] = head;
         }
-        level = randomlevel;
+        level = randomLevel;
     }
 
-    for (int i = 0; i <= randomlevel; ++i) {
+    for (int i = 0; i <= randomLevel; ++i) {
         node->forward[i] = update[i]->forward[i];
         update[i]->forward[i] = node;
     }
@@ -62,9 +65,9 @@ void SkipList::put(uint64_t key, const std::string &s) {
 
 std::string SkipList::get(uint64_t key, bool &deleted, bool &found) const {
     Node *current = head;
-    for (int level = maxLevel - 1; level >= 0; --level) {
-        while (current->forward[level] && current->forward[level]->key < key) {
-            current = current->forward[level];
+    for (int currentLevel = maxLevel - 1; currentLevel >= 0; --currentLevel) {
+        while (current->forward[currentLevel] && current->forward[currentLevel]->key < key) {
+            current = current->forward[currentLevel];
         }
     }
     current = current->forward[0];
@@ -90,11 +93,11 @@ bool SkipList::del(uint64_t key, bool inIndex) {
     Node *update[maxLevel + 1];
     memset(update, 0, (maxLevel + 1) * sizeof(Node *));
 
-    for (int i = level; i >= 0; --i) {
-        while (current->forward[i] && current->forward[i]->key < key) {
-            current = current->forward[i];
+    for (int currentLevel = level; currentLevel >= 0; --currentLevel) {
+        while (current->forward[currentLevel] && current->forward[currentLevel]->key < key) {
+            current = current->forward[currentLevel];
         }
-        update[i] = current;
+        update[currentLevel] = current;
     }
     current = current->forward[0];
 
@@ -120,17 +123,17 @@ bool SkipList::del(uint64_t key, bool inIndex) {
         return false;
     }
     // if key in disk only, insert new node
-    int randomlevel = randomLevel();
-    Node *node = new Node(key, std::string(), randomlevel, true);
+    int randomLevel = getRandomLevel();
+    Node *node = new Node(key, std::string(), randomLevel, true);
 
-    if (randomlevel > level) {
-        for (int i = level + 1; i <= randomlevel; ++i) {
+    if (randomLevel > level) {
+        for (int i = level + 1; i <= randomLevel; ++i) {
             update[i] = head;
         }
-        level = randomlevel;
+        level = randomLevel;
     }
 
-    for (int i = 0; i <= randomlevel; ++i) {
+    for (int i = 0; i <= randomLevel; ++i) {
         node->forward[i] = update[i]->forward[i];
         update[i]->forward[i] = node;
     }

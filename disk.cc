@@ -31,7 +31,6 @@ void Disk::put(int level, const Data &data, Index &index) {
     std::vector<uint64_t> offsets;
     std::vector<uint64_t> lengths;
 
-    int i = 0;
     for (auto &kv: data) {
         // record offset and length
         offsets.emplace_back(file.tellp());
@@ -43,8 +42,6 @@ void Disk::put(int level, const Data &data, Index &index) {
         file.write("\0", sizeof(char));
 
         file.flush();
-
-        i++;
     }
 
     file.flush();
@@ -191,7 +188,7 @@ void Disk::compact(Index &index, int level) {
     }
 }
 
-bool Disk::inRange(uint64_t lower, uint64_t upper, const Range &range) const {
+bool Disk::inRange(uint64_t lower, uint64_t upper, const Range &range) {
     for (auto &r: range) {
         uint64_t range_lower = r.first;
         uint64_t range_upper = r.second;

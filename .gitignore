@@ -4,3 +4,4 @@ persistence
 *.pdf
 *.pptx
 .vscode
+.idea
