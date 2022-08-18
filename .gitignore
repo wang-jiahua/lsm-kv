@@ -5,3 +5,4 @@ persistence
 *.pptx
 .vscode
 .idea
+build
