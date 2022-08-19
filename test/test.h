@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 
-#include "kvstore.h"
+#include "../kvstore.h"
 
 class Test {
 protected:
