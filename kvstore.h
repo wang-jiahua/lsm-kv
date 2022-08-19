@@ -4,13 +4,14 @@
 #include "index.h"
 #include "kvstore_api.h"
 #include "skiplist.h"
+#include "filter.h"
 
 class KVStore : public KVStoreAPI {
-    // You can add your implementation here
 private:
     SkipList MemTable;
     Index index;
     Disk disk;
+    Filter filter;
 
     const uint64_t MAX_MEMTABLE_SIZE = 2 * 1024 * 1024; // 2MB
 

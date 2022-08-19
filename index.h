@@ -5,6 +5,8 @@
 #include <vector>
 #include <string>
 
+#include "filter.h"
+
 class IndexNode {
 
 public:
@@ -41,5 +43,5 @@ public:
 
     void reset();
 
-    void recover();
+    void recover(Filter &filter);
 };

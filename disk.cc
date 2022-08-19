@@ -18,7 +18,7 @@ std::string Disk::get(int level, uint64_t filename, uint64_t offset, uint64_t le
     return value;
 }
 
-void Disk::put(int level, const Data &data, Index &index) {
+void Disk::put(int level, const Data &data, Index &index, Filter &filter) {
     std::time_t fileTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now().time_since_epoch()
     ).count();
@@ -63,6 +63,9 @@ void Disk::put(int level, const Data &data, Index &index) {
         index.put(key, level, filename, offset, length, std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()
         ).count(), data[i].deleted);
+
+        // sync with filter
+        filter.add(key, level, std::stoull(filename));
     }
 
     // write number of key-value pair for index recovery
@@ -73,11 +76,11 @@ void Disk::put(int level, const Data &data, Index &index) {
     file.close();
 
     if (index.trees[level].size() > maxFileNums[level]) {
-        compact(index, level);
+        compact(index, level, filter);
     }
 }
 
-void Disk::compact(Index &index, int level) {
+void Disk::compact(Index &index, int level, Filter &filter) {
     // record information to merge
     std::vector<MergeNode> toMerge;
 
@@ -173,13 +176,13 @@ void Disk::compact(Index &index, int level) {
         size += sizeof(uint64_t) + value.size() + sizeof(uint64_t) + sizeof(uint64_t);
 
         if (size >= MAX_FILE_SIZE) {
-            put(level + 1, data, index);
+            put(level + 1, data, index, filter);
             data.clear();
             size = 0;
         }
     }
     if (!data.empty())
-        put(level + 1, data, index);
+        put(level + 1, data, index, filter);
 
     // delete merged files
     for (auto &node: toMerge) {

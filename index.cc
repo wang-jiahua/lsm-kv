@@ -78,7 +78,7 @@ void Index::reset() {
     }
 }
 
-void Index::recover() {
+void Index::recover(Filter &filter) {
     if (!fs::exists("data")) {
         return;
     }
@@ -118,6 +118,9 @@ void Index::recover() {
             put(key, level, filename, offset, s.size(), std::chrono::duration_cast<std::chrono::milliseconds>(
                     std::chrono::system_clock::now().time_since_epoch()
             ).count(), false);
+
+            // sync with filter
+            filter.add(key, level, std::stoull(filename));
         }
         file.close();
     }

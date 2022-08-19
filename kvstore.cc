@@ -4,7 +4,7 @@
 
 KVStore::KVStore(const std::string &dir) : KVStoreAPI(dir) {
     MemTable = SkipList();
-    index.recover();
+    index.recover(filter);
 }
 
 KVStore::~KVStore() = default;
@@ -17,7 +17,7 @@ void KVStore::put(uint64_t key, const std::string &s) {
     MemTable.put(key, s);
     // if memtable is full
     if (MemTable.getSize() >= MAX_MEMTABLE_SIZE) {
-        disk.put(0, MemTable.traverse(), index);
+        disk.put(0, MemTable.traverse(), index, filter);
         MemTable.reset();
     }
 }
@@ -42,6 +42,9 @@ std::string KVStore::get(uint64_t key) {
     if (offset == UINT64_MAX || deleted) {
         return {};
     }
+    if (!filter.contains(key, level, filename)) {
+        return {};
+    }
     // get in disk
     return disk.get(level, filename, offset, length);
 }
@@ -55,7 +58,7 @@ bool KVStore::del(uint64_t key) {
     bool success = MemTable.del(key, inIndex);
     // if memtable is full
     if (MemTable.getSize() >= MAX_MEMTABLE_SIZE) {
-        disk.put(0, MemTable.traverse(), index);
+        disk.put(0, MemTable.traverse(), index, filter);
         MemTable.reset();
     }
     return success;
@@ -65,6 +68,11 @@ bool KVStore::del(uint64_t key) {
  * This resets the kvstore. All key-value pairs should be removed,
  * including memtable and all sstables files.
  */
-void KVStore::reset() { MemTable.reset(); }
+void KVStore::reset() {
+    MemTable.reset();
+    index.reset();
+    disk.reset();
+    filter.reset();
+}
 
 void KVStore::print() const { MemTable.print(); }
