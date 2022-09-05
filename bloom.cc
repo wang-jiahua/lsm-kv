@@ -1,5 +1,5 @@
 #include "bloom.h"
-#include "MurmurHash3.h"
+#include "util/MurmurHash3.h"
 
 BloomFilter::BloomFilter() {
     reset();

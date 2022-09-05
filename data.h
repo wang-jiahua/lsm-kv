@@ -13,8 +13,10 @@ struct DataNode {
     std::string value;
     bool deleted;
 
-    DataNode(uint64_t _key, std::string _value, bool _deleted) : key(_key), value(std::move(_value)),
-                                                                 deleted(_deleted) {}
+    DataNode(uint64_t _key, std::string _value, bool _deleted) :
+            key(_key),
+            value(std::move(_value)),
+            deleted(_deleted) {}
 };
 
 using Data = std::vector<DataNode>;
