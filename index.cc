@@ -15,7 +15,7 @@ void Index::get(uint64_t key, int &level, uint64_t &filename, uint64_t &offset, 
         // search from the latest one
         for (auto &indexKV: levels[level]) {
             uint64_t timestamp = indexKV.first;
-            std::shared_ptr <IndexTree> indexTree = indexKV.second;
+            std::shared_ptr<IndexTree> indexTree = indexKV.second;
             auto iter = indexTree->find(key);
             // if key found in this file
             if (iter != indexTree->end()) {
@@ -32,7 +32,7 @@ void Index::get(uint64_t key, int &level, uint64_t &filename, uint64_t &offset, 
 bool Index::find(uint64_t key) {
     for (auto &level: levels) {
         for (auto &pair: level) {
-            std::shared_ptr <IndexTree> tree = pair.second;
+            std::shared_ptr<IndexTree> tree = pair.second;
             auto iter = tree->find(key);
             // if key in disk and not marked as deleted
             if (iter != tree->end() && !(iter->second->is_deleted())) {

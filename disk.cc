@@ -5,6 +5,7 @@
 #include <string>
 #include <iostream>
 #include <chrono>
+#include <algorithm>
 
 namespace fs = std::filesystem;
 
@@ -12,8 +13,8 @@ std::string Disk::get(int level, uint64_t filename, uint64_t offset, uint64_t le
     std::ifstream file("data/" + std::to_string(level) + "/" + std::to_string(filename),
                        std::ios::in | std::ios::binary);
     std::string value;
-    file.seekg(offset + sizeof(uint64_t));
-    std::getline(file, value, '\0');
+    (void) file.seekg(offset + sizeof(uint64_t));
+    (void) std::getline(file, value, '\0');
     file.close();
     return value;
 }
@@ -25,26 +26,26 @@ void Disk::put(int level, const Data &data, Index &index, Filter &filter) {
     std::string filename = std::to_string(fileTimestamp);
     std::ofstream file;
 
-    fs::create_directories("data/" + std::to_string(level));
+    (void) fs::create_directories("data/" + std::to_string(level));
     file.open("data/" + std::to_string(level) + "/" + filename, std::ios::out | std::ios::binary);
 
-    std::vector <uint64_t> offsets;
-    std::vector <uint64_t> lengths;
+    std::vector<uint64_t> offsets;
+    std::vector<uint64_t> lengths;
 
     for (auto &kv: data) {
         // record offset and length
-        offsets.emplace_back(file.tellp());
-        lengths.emplace_back(kv.value.size());
+        (void) offsets.emplace_back(file.tellp());
+        (void) lengths.emplace_back(kv.value.size());
 
         // write key and value
-        file.write((char *) (&(kv.key)), sizeof(uint64_t));
-        file.write(kv.value.c_str(), kv.value.size());
-        file.write("\0", sizeof(char));
+        (void) file.write((char *) (&(kv.key)), sizeof(uint64_t));
+        (void) file.write(kv.value.c_str(), kv.value.size());
+        (void) file.write("\0", sizeof(char));
 
-        file.flush();
+        (void) file.flush();
     }
 
-    file.flush();
+    (void) file.flush();
 
     uint64_t n = data.size();
 
@@ -54,10 +55,10 @@ void Disk::put(int level, const Data &data, Index &index, Filter &filter) {
         uint64_t length = lengths[i];
 
         // write key and offset
-        file.write(reinterpret_cast<char *>(&key), sizeof(uint64_t));
-        file.write(reinterpret_cast<char *>(&offset), sizeof(uint64_t));
+        (void) file.write(reinterpret_cast<char *>(&key), sizeof(uint64_t));
+        (void) file.write(reinterpret_cast<char *>(&offset), sizeof(uint64_t));
 
-        file.flush();
+        (void) file.flush();
 
         // sync with index
         index.put(key, level, filename, offset, length, std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -69,9 +70,9 @@ void Disk::put(int level, const Data &data, Index &index, Filter &filter) {
     }
 
     // write number of key-value pair for index recovery
-    file.write(reinterpret_cast<char *>(&n), sizeof(uint64_t));
+    (void) file.write(reinterpret_cast<char *>(&n), sizeof(uint64_t));
 
-    file.flush();
+    (void) file.flush();
 
     file.close();
 
@@ -82,12 +83,12 @@ void Disk::put(int level, const Data &data, Index &index, Filter &filter) {
 
 void Disk::compact(Index &index, int level, Filter &filter) {
     // record information to merge
-    std::vector <MergeNode> toMerge;
+    std::vector<MergeNode> toMerge;
 
     Range range;
 
     // number of files to merge in this level
-    size_t num = 0;
+    size_t num;
     if (level == 0) {
         num = index.get_level(level).size();
     } else {
@@ -103,7 +104,7 @@ void Disk::compact(Index &index, int level, Filter &filter) {
         uint64_t upper = tree->rbegin()->first;
         // ranges in this level
         range.push_back({lower, upper});
-        toMerge.emplace_back(MergeNode(level, filename, tree->begin()));
+        (void) toMerge.emplace_back(MergeNode(level, filename, tree->begin()));
         treeKV1++;
     }
 
@@ -114,17 +115,17 @@ void Disk::compact(Index &index, int level, Filter &filter) {
         uint64_t lower = tree->begin()->first;
         uint64_t upper = tree->rbegin()->first;
         if (inRange(lower, upper, range)) {
-            toMerge.emplace_back(MergeNode(level + 1, filename, tree->begin()));
+            (void) toMerge.emplace_back(MergeNode(level + 1, filename, tree->begin()));
         }
     }
 
     struct cmp {
         bool operator()(const MergeNode &a, const MergeNode &b) {
-            return a.iter->first > b.iter->first;
+            return a.iter_->first > b.iter_->first;
         }
     };
 
-    std::priority_queue <MergeNode, std::vector<MergeNode>, cmp> queue;
+    std::priority_queue<MergeNode, std::vector<MergeNode>, cmp> queue;
 
     for (auto &node: toMerge) {
         queue.push(node);
@@ -135,45 +136,46 @@ void Disk::compact(Index &index, int level, Filter &filter) {
 
     while (!queue.empty()) {
         MergeNode latest = queue.top();
-        auto tmp = latest.iter;
+        auto tmp = latest.iter_;
         queue.pop();
-        auto tree = index.get_level(latest.level)[latest.filename];
+        auto tree = index.get_level(latest.level_)[latest.filename_];
         if (++tmp != tree->end()) {
-            queue.push(MergeNode(latest.level, latest.filename, tmp));
+            queue.push(MergeNode(latest.level_, latest.filename_, tmp));
         }
 
-        uint64_t key = latest.iter->first;
-        std::time_t timestamp = latest.iter->second->get_timestamp();
+        uint64_t key = latest.iter_->first;
+        std::time_t timestamp = latest.iter_->second->get_timestamp();
 
         if (!queue.empty()) {
             MergeNode top = queue.top();
             // find the latest one with the same key
-            while (!queue.empty() && queue.top().iter != latest.iter && queue.top().iter->first == key) {
-                if (queue.top().iter->second->get_timestamp() >= timestamp) {
+            while (!queue.empty() && queue.top().iter_ != latest.iter_ &&
+                   queue.top().iter_->first == key) {
+                if (queue.top().iter_->second->get_timestamp() >= timestamp) {
                     latest = queue.top();
-                    timestamp = queue.top().iter->second->get_timestamp();
+                    timestamp = queue.top().iter_->second->get_timestamp();
                 }
 
                 auto tmp1 = queue.top();
                 queue.pop();
 
-                auto tree1 = index.get_level(tmp1.level)[tmp1.filename];
-                auto tmp2 = tmp1.iter;
+                auto tree1 = index.get_level(tmp1.level_)[tmp1.filename_];
+                auto tmp2 = tmp1.iter_;
                 if (++tmp2 != tree1->end()) {
-                    queue.push(MergeNode(tmp1.level, tmp1.filename, tmp2));
+                    queue.push(MergeNode(tmp1.level_, tmp1.filename_, tmp2));
                 }
                 top = queue.top();
             }
         }
 
         // have found the latest one, record it
-        key = latest.iter->first;
+        key = latest.iter_->first;
         std::string value =
-                get(latest.level, latest.filename, latest.iter->second->get_offset(),
-                    latest.iter->second->get_length());
-        bool deleted = latest.iter->second->is_deleted();
+                get(latest.level_, latest.filename_, latest.iter_->second->get_offset(),
+                    latest.iter_->second->get_length());
+        bool deleted = latest.iter_->second->is_deleted();
 
-        data.emplace_back(DataNode(key, value, deleted));
+        (void) data.emplace_back(DataNode(key, value, deleted));
         size += sizeof(uint64_t) + value.size() + sizeof(uint64_t) + sizeof(uint64_t);
 
         if (size >= MAX_FILE_SIZE) {
@@ -182,31 +184,27 @@ void Disk::compact(Index &index, int level, Filter &filter) {
             size = 0;
         }
     }
-    if (!data.empty())
+    if (!data.empty()) {
         put(level + 1, data, index, filter);
+    }
 
     // delete merged files
     for (auto &node: toMerge) {
-        index.get_level(node.level).erase(node.filename);
-        fs::remove("data/" + std::to_string(node.level) + "/" + std::to_string(node.filename));
+        index.get_level(node.level_).erase(node.filename_);
+        (void) fs::remove("data/" + std::to_string(node.level_) + "/" + std::to_string(node.filename_));
     }
 }
 
 bool Disk::inRange(uint64_t lower, uint64_t upper, const Range &range) {
-    for (auto &r: range) {
-        uint64_t range_lower = r.first;
-        uint64_t range_upper = r.second;
-        if (lower <= range_upper && upper >= range_lower) {
-            return true;
-        }
-    }
-    return false;
+    return std::any_of(range.begin(), range.end(), [&](const std::pair<uint64_t, uint64_t> &p) {
+        return lower <= p.second && upper >= p.first;
+    });
 }
 
 Disk::Disk() {
     // maximum num of files are 2, 4, 8, 16, 32, ...
     for (int i = 0; i < maxLevel; ++i) {
-        maxFileNums[i] = 1 << (i + 1);
+        maxFileNums[i] = 1U << (i + 1);
     }
 }
 

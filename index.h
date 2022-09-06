@@ -34,8 +34,8 @@ private:
     bool deleted_;
 };
 
-typedef std::map <uint64_t, std::shared_ptr<IndexNode>> IndexTree;       // key -> info
-typedef std::map <uint64_t, std::shared_ptr<IndexTree>, std::greater<>> IndexLevel; // filename -> tree
+typedef std::map<uint64_t, std::shared_ptr<IndexNode>> IndexTree;                  // key -> info
+typedef std::map<uint64_t, std::shared_ptr<IndexTree>, std::greater<>> IndexLevel; // filename -> tree
 
 class Index {
 public:
@@ -67,6 +67,6 @@ public:
     IndexLevel &get_level(int level) { return levels[level]; }
 
 private:
-    std::vector <IndexLevel> levels;
+    std::vector<IndexLevel> levels;
     const int maxLevel = 20;
 };

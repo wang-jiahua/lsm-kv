@@ -14,7 +14,7 @@ void BloomFilter::add(uint64_t key) {
     const uint32_t delta = (h >> 17) | (h << 15);
     for (uint64_t i = 0; i < k; i++) {
         const uint32_t bitpos = h % m;
-        bitset.set(bitpos);
+        (void) bitset.set(bitpos);
         h += delta;
     }
 }
@@ -34,5 +34,5 @@ bool BloomFilter::contains(uint64_t key) const {
 }
 
 void BloomFilter::reset() {
-    bitset.reset();
+    (void) bitset.reset();
 }

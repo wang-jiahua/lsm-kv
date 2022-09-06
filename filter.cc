@@ -10,7 +10,7 @@ Filter::~Filter() = default;
 
 void Filter::add(uint64_t key, int level, uint64_t filename) {
     if (filterLevels[level].count(filename) == 0) {
-        filterLevels[level].insert({filename, BloomFilter()});
+        (void) filterLevels[level].insert({filename, BloomFilter()});
     }
     BloomFilter &bloomFilter = filterLevels[level][filename];
     bloomFilter.add(key);
