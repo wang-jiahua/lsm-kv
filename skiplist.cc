@@ -16,7 +16,7 @@ int SkipList::getRandomLevel() {
     std::ranlux48 engine(seed());
     std::uniform_int_distribution<unsigned> distribution(0, UINT32_MAX);
     int level = 0;
-    while (distribution(engine) % 2 && level < maxLevel) {
+    while (distribution(engine) % 2 == 1 && level < maxLevel) {
         ++level;
     }
     return level;
@@ -28,19 +28,19 @@ void SkipList::put(uint64_t key, const std::string &s) {
     memset(update, 0, (maxLevel + 1) * sizeof(Node *));
 
     for (int i = level; i >= 0; --i) {
-        while (current->forward[i] && current->forward[i]->key < key) {
-            current = current->forward[i];
+        while (current->get_forward(i) != nullptr && current->get_forward(i)->get_key() < key) {
+            current = current->get_forward(i);
         }
         update[i] = current;
     }
-    current = current->forward[0];
+    current = current->get_forward(0);
     // if key already exists
-    if (current != nullptr && current->key == key) {
-        if (current->deleted) {
-            current->deleted = false;
+    if (current != nullptr && current->get_key() == key) {
+        if (current->get_deleted()) {
+            current->set_deleted(false);
         }
-        size += s.length() - (current->value).length();
-        current->value = s;
+        size += s.length() - (current->get_value()).length();
+        current->set_value(s);
         return;
     }
     // if key doesn't exist, insert a new node
@@ -55,29 +55,28 @@ void SkipList::put(uint64_t key, const std::string &s) {
     }
 
     for (int i = 0; i <= randomLevel; ++i) {
-        node->forward[i] = update[i]->forward[i];
-        update[i]->forward[i] = node;
+        node->set_forward(i, update[i]->get_forward(i));
+        update[i]->set_forward(i, node);
     }
 
-    // TODO: how to calculate the size
     size += sizeof(uint64_t) + s.length() + sizeof(uint64_t) + sizeof(uint64_t); // key + value + key + offset
 }
 
 std::string SkipList::get(uint64_t key, bool &deleted, bool &found) const {
     Node *current = head;
-    for (int currentLevel = maxLevel - 1; currentLevel >= 0; --currentLevel) {
-        while (current->forward[currentLevel] && current->forward[currentLevel]->key < key) {
-            current = current->forward[currentLevel];
+    for (int i = maxLevel - 1; i >= 0; --i) {
+        while (current->get_forward(i) != nullptr && current->get_forward(i)->get_key() < key) {
+            current = current->get_forward(i);
         }
     }
-    current = current->forward[0];
-    if (current && current->key == key && !(current->deleted)) {
+    current = current->get_forward(0);
+    if (current != nullptr && current->get_key() == key && !(current->get_deleted())) {
         deleted = false;
         found = true;
-        return current->value;
+        return current->get_value();
     }
     // key not found
-    if (current == nullptr || current->key != key) {
+    if (current == nullptr || current->get_key() != key) {
         deleted = false;
         found = false;
         return {};
@@ -93,28 +92,28 @@ bool SkipList::del(uint64_t key, bool inIndex) {
     Node *update[maxLevel + 1];
     memset(update, 0, (maxLevel + 1) * sizeof(Node *));
 
-    for (int currentLevel = level; currentLevel >= 0; --currentLevel) {
-        while (current->forward[currentLevel] && current->forward[currentLevel]->key < key) {
-            current = current->forward[currentLevel];
+    for (int i = level; i >= 0; --i) {
+        while (current->get_forward(i) != nullptr && current->get_forward(i)->get_key() < key) {
+            current = current->get_forward(i);
         }
-        update[currentLevel] = current;
+        update[i] = current;
     }
-    current = current->forward[0];
+    current = current->get_forward(0);
 
     // if key in memtable
-    if (current != nullptr && current->key == key) {
+    if (current != nullptr && current->get_key() == key) {
         // if key marked as deleted in memtable
-        if (current->deleted) {
+        if (current->get_deleted()) {
             return false;
         }
         // if key not deleted
-        for (int i = 0; i <= current->level && update[i]->forward[i] == current; ++i) {
-            update[i]->forward[i] = current->forward[i];
+        for (int i = 0; i <= current->get_level() && update[i]->get_forward(i) == current; ++i) {
+            update[i]->set_forward(i, current->get_forward(i));
         }
-        while (level > 0 && head->forward[level] == nullptr) {
+        while (level > 0 && head->get_forward(level) == nullptr) {
             --level;
         }
-        size -= sizeof(key) * 2 + (current->value).length() + 4;
+        size -= sizeof(key) * 2 + (current->get_value()).length() + 4;
         delete current;
         return true;
     }
@@ -134,8 +133,8 @@ bool SkipList::del(uint64_t key, bool inIndex) {
     }
 
     for (int i = 0; i <= randomLevel; ++i) {
-        node->forward[i] = update[i]->forward[i];
-        update[i]->forward[i] = node;
+        node->set_forward(i, update[i]->get_forward(i));
+        update[i]->set_forward(i, node);
     }
 
     size += sizeof(uint64_t) + sizeof(uint64_t) + sizeof(uint64_t); // key + value(empty) + key + offset
@@ -143,17 +142,16 @@ bool SkipList::del(uint64_t key, bool inIndex) {
 }
 
 void SkipList::reset() {
-    Node *current = head->forward[0];
+    Node *current = head->get_forward(0);
     for (int i = 0; i < maxLevel; i++) {
-        head->forward[i] = nullptr;
+        head->set_forward(i, nullptr);
     }
     while (current != nullptr) {
-        Node *next = current->forward[0];
-        for (int i = 0; i < current->level; i++) {
-            current->forward[i] = nullptr;
+        Node *next = current->get_forward(0);
+        for (int i = 0; i < current->get_level(); i++) {
+            current->set_forward(i, nullptr);
         }
-        // TODO
-//        delete current;
+        delete current;
         current = next;
     }
     size = 0;
@@ -162,18 +160,18 @@ void SkipList::reset() {
 void SkipList::print() const {
     std::cout << "-------------------------------------------\n";
     Node *current = head;
-    while (current) {
-        for (int j = 0; j <= current->level; ++j) {
-            std::cout << current->key << "(";
-            if (current->forward[j]) {
-                std::cout << current->forward[j]->key;
+    while (current != nullptr) {
+        for (int j = 0; j <= current->get_level(); ++j) {
+            std::cout << current->get_key() << "(";
+            if (current->get_forward(j) != nullptr) {
+                std::cout << current->get_forward(j)->get_key();
             } else {
                 std::cout << "n";
             }
             std::cout << ")" << '\t';
         }
         std::cout << std::endl;
-        current = current->forward[0];
+        current = current->get_forward(0);
     }
     std::cout << "-------------------------------------------\n";
 }
@@ -182,10 +180,10 @@ uint64_t SkipList::getSize() const { return size; }
 
 Data SkipList::traverse() const {
     Data data;
-    Node *current = head->forward[0];
-    while (current) {
-        data.push_back(DataNode(current->key, current->value, current->deleted));
-        current = current->forward[0];
+    Node *current = head->get_forward(0);
+    while (current != nullptr) {
+        data.emplace_back(DataNode(current->get_key(), current->get_value(), current->get_deleted()));
+        current = current->get_forward(0);
     }
     return data;
 }

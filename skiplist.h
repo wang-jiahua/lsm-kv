@@ -9,19 +9,37 @@ constexpr int maxLevel = 20;
 
 class SkipList {
     struct Node {
-        uint64_t key;
-        std::string value;
-        Node **forward;
-        int level;
-        bool deleted;
-
-        Node(uint64_t _key, std::string s, int _level, bool _deleted = false)
-                : key(_key), value(std::move(s)), level(_level), deleted(_deleted) {
-            forward = new Node *[level + 1];
-            memset(forward, 0, (level + 1) * sizeof(Node *));
+    public:
+        Node(uint64_t key, std::string s, int level, bool deleted = false)
+                : key_(key), value_(std::move(s)), level_(level), deleted_(deleted) {
+            forward_ = new Node *[level + 1];
+            memset(forward_, 0, (level + 1) * sizeof(Node *));
         }
 
-        ~Node() { delete[] forward; }
+        ~Node() { delete[] forward_; }
+
+        uint64_t get_key() const { return key_; }
+
+        std::string get_value() const { return value_; }
+
+        void set_value(std::string s) { value_ = std::move(s); }
+
+        Node *get_forward(int i) const { return forward_[i]; }
+
+        void set_forward(int i, Node *node) { forward_[i] = node; }
+
+        int get_level() const { return level_; }
+
+        bool get_deleted() const { return deleted_; }
+
+        void set_deleted(bool deleted) { deleted_ = deleted; }
+
+    private:
+        uint64_t key_;
+        std::string value_;
+        Node **forward_;
+        int level_;
+        bool deleted_;
     };
 
 private:
