@@ -9,7 +9,7 @@ Filter::Filter() {
 Filter::~Filter() = default;
 
 void Filter::add(uint64_t key, int level, uint64_t filename) {
-    if (filterLevels[level].count(filename) == 0) {
+    if (filterLevels[level].count(filename) == 0U) {
         (void) filterLevels[level].insert({filename, BloomFilter()});
     }
     BloomFilter &bloomFilter = filterLevels[level][filename];
@@ -17,7 +17,7 @@ void Filter::add(uint64_t key, int level, uint64_t filename) {
 }
 
 bool Filter::contains(uint64_t key, int level, uint64_t filename) const {
-    if (filterLevels[level].count(filename) == 0) {
+    if (filterLevels[level].count(filename) == 0U) {
         return false;
     }
     const BloomFilter &bloomFilter = filterLevels[level].at(filename);

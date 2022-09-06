@@ -13,10 +13,10 @@ private:
     Disk disk;
     Filter filter;
 
-    const uint64_t MAX_MEMTABLE_SIZE = 2 * 1024 * 1024; // 2MB
+    const uint64_t MAX_MEMTABLE_SIZE = 2U * 1024U * 1024U; // 2MB
 
 public:
-    KVStore(const std::string &dir);
+    explicit KVStore(const std::string &dir);
 
     ~KVStore();
 
@@ -26,7 +26,7 @@ public:
 
     bool del(uint64_t key) override;
 
-    virtual void reset() override;
+    void reset() override;
 
     void print() const;
 };

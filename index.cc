@@ -20,9 +20,9 @@ void Index::get(uint64_t key, int &level, uint64_t &filename, uint64_t &offset, 
             // if key found in this file
             if (iter != indexTree->end()) {
                 filename = timestamp;
-                offset = iter->second->get_offset();
-                length = iter->second->get_length();
-                deleted = iter->second->is_deleted();
+                offset = iter->second->offset_;
+                length = iter->second->length_;
+                deleted = iter->second->deleted_;
                 return;
             }
         }
@@ -80,21 +80,21 @@ void Index::recover(Filter &filter) {
         std::ifstream file(path, std::ios::in | std::ios::binary);
 
         // get number of key-value pairs in the last 2 bytes
-        uint64_t n = 0;
-        (void) file.seekg(-sizeof(uint64_t), file.end);
+        uint64_t n = 0U;
+        (void) file.seekg(-sizeof(uint64_t), std::ios_base::end);
         (void) file.read(reinterpret_cast<char *>(&n), sizeof(uint64_t));
 
         std::size_t pos = path.find('/');
-        path = path.substr(pos + 1, path.size());
+        path = path.substr(pos + 1U, path.size());
 
-        for (uint64_t i = 1; i <= n; i++) {
+        for (uint64_t i = 1U; i <= n; i++) {
             // recover key
             uint64_t key;
-            (void) file.seekg((int) (-sizeof(uint64_t) * (1 + 2 * i)), std::ios_base::end);
+            (void) file.seekg((int) (-sizeof(uint64_t) * (1U + 2U * i)), std::ios_base::end);
             (void) file.read(reinterpret_cast<char *>(&key), sizeof(uint64_t));
             // recover offset
-            uint64_t offset = 0;
-            (void) file.seekg((int) (-sizeof(uint64_t) * (2 * i)), std::ios_base::end);
+            uint64_t offset = 0U;
+            (void) file.seekg((int) (-sizeof(uint64_t) * (2U * i)), std::ios_base::end);
             (void) file.read(reinterpret_cast<char *>(&offset), sizeof(uint64_t));
             // recover value
             std::string s;

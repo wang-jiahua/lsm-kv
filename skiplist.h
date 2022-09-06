@@ -15,41 +15,34 @@ class SkipList {
     public:
         Node(uint64_t key, std::string s, int level, bool deleted = false)
                 : key_(key), value_(std::move(s)), level_(level), deleted_(deleted) {
-            forward_ = std::vector < std::shared_ptr < Node >> (level_ + 1);
+            forward_ = std::vector<std::shared_ptr<Node >>(level_ + 1);
         }
 
-        ~Node() {}
+        ~Node() = default;
 
-        uint64_t get_key() const { return key_; }
+        [[nodiscard]] uint64_t get_key() const { return key_; }
 
-        std::string get_value() const { return value_; }
+        [[nodiscard]] std::string get_value() const { return value_; }
 
-        void set_value(const std::string s) { value_ = std::move(s); }
+        void set_value(const std::string &s) { value_ = s; }
 
-        std::shared_ptr <Node> get_forward(int i) const { return std::move(forward_[i]); }
+        [[nodiscard]] std::shared_ptr<Node> get_forward(size_t i) const { return forward_[i]; }
 
-        void set_forward(int i, std::shared_ptr <Node> node) { forward_[i] = std::move(node); }
+        void set_forward(size_t i, std::shared_ptr<Node> node) { forward_[i] = std::move(node); }
 
-        int get_level() const { return level_; }
+        [[nodiscard]] int get_level() const { return level_; }
 
-        bool get_deleted() const { return deleted_; }
+        [[nodiscard]] bool get_deleted() const { return deleted_; }
 
         void set_deleted(bool deleted) { deleted_ = deleted; }
 
     private:
         uint64_t key_;
         std::string value_;
-        std::vector <std::shared_ptr<Node>> forward_;
+        std::vector<std::shared_ptr<Node>> forward_;
         int level_;
         bool deleted_;
     };
-
-private:
-    std::shared_ptr <Node> head;
-    int level;
-    uint64_t size;
-
-    static int getRandomLevel();
 
 public:
     SkipList();
@@ -69,4 +62,11 @@ public:
     [[nodiscard]] uint64_t getSize() const;
 
     [[nodiscard]] Data traverse() const;
+
+private:
+    std::shared_ptr<Node> head;
+    int level;
+    uint64_t size;
+
+    static int getRandomLevel();
 };

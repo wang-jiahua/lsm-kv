@@ -9,10 +9,10 @@ BloomFilter::~BloomFilter() = default;
 
 void BloomFilter::add(uint64_t key) {
     uint32_t h;
-    MurmurHash3_x86_32(&key, sizeof(uint64_t), 0, &h);
+    MurmurHash3_x86_32(&key, sizeof(uint64_t), 0U, &h);
     // inspired by https://github.com/google/leveldb/blob/main/util/bloom.cc
     const uint32_t delta = (h >> 17) | (h << 15);
-    for (uint64_t i = 0; i < k; i++) {
+    for (uint64_t i = 0U; i < k; i++) {
         const uint32_t bitpos = h % m;
         (void) bitset.set(bitpos);
         h += delta;
@@ -21,9 +21,9 @@ void BloomFilter::add(uint64_t key) {
 
 bool BloomFilter::contains(uint64_t key) const {
     uint32_t h;
-    MurmurHash3_x86_32(&key, sizeof(uint64_t), 0, &h);
+    MurmurHash3_x86_32(&key, sizeof(uint64_t), 0U, &h);
     const uint32_t delta = (h >> 17) | (h << 15);
-    for (uint64_t i = 0; i < k; i++) {
+    for (uint64_t i = 0U; i < k; i++) {
         const uint32_t bitpos = h % m;
         if (bitset[bitpos] == 0) {
             return false;

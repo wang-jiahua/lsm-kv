@@ -19,7 +19,7 @@ public:
 private:
     // n == 1e6, p == 0.01%, m / n == -ln(p) / (ln(2) * ln(2)) == 20
     // k == m / n * ln(2) == 14
-    static const uint64_t m = 2000000;
-    static const uint64_t k = 14;
+    static const uint64_t m = 2000000U;
+    static const uint64_t k = 14U;
     std::bitset<m> bitset;
 };

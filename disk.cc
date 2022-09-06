@@ -35,11 +35,11 @@ void Disk::put(int level, const Data &data, Index &index, Filter &filter) {
     for (auto &kv: data) {
         // record offset and length
         (void) offsets.emplace_back(file.tellp());
-        (void) lengths.emplace_back(kv.value.size());
+        (void) lengths.emplace_back(kv.value_.size());
 
         // write key and value
-        (void) file.write((char *) (&(kv.key)), sizeof(uint64_t));
-        (void) file.write(kv.value.c_str(), kv.value.size());
+        (void) file.write((char *) (&(kv.key_)), sizeof(uint64_t));
+        (void) file.write(kv.value_.c_str(), kv.value_.size());
         (void) file.write("\0", sizeof(char));
 
         (void) file.flush();
@@ -49,8 +49,8 @@ void Disk::put(int level, const Data &data, Index &index, Filter &filter) {
 
     uint64_t n = data.size();
 
-    for (uint64_t i = 0; i < n; i++) {
-        uint64_t key = data[i].key;
+    for (uint64_t i = 0U; i < n; i++) {
+        uint64_t key = data[i].key_;
         uint64_t offset = offsets[i];
         uint64_t length = lengths[i];
 
@@ -63,7 +63,7 @@ void Disk::put(int level, const Data &data, Index &index, Filter &filter) {
         // sync with index
         index.put(key, level, filename, offset, length, std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()
-        ).count(), data[i].deleted);
+        ).count(), data[i].deleted_);
 
         // sync with filter
         filter.add(key, level, std::stoull(filename));
@@ -132,7 +132,7 @@ void Disk::compact(Index &index, int level, Filter &filter) {
     }
 
     Data data;
-    uint64_t size = 0;
+    uint64_t size = 0U;
 
     while (!queue.empty()) {
         MergeNode latest = queue.top();
@@ -181,7 +181,7 @@ void Disk::compact(Index &index, int level, Filter &filter) {
         if (size >= MAX_FILE_SIZE) {
             put(level + 1, data, index, filter);
             data.clear();
-            size = 0;
+            size = 0U;
         }
     }
     if (!data.empty()) {
@@ -190,7 +190,7 @@ void Disk::compact(Index &index, int level, Filter &filter) {
 
     // delete merged files
     for (auto &node: toMerge) {
-        index.get_level(node.level_).erase(node.filename_);
+        (void) index.get_level(node.level_).erase(node.filename_);
         (void) fs::remove("data/" + std::to_string(node.level_) + "/" + std::to_string(node.filename_));
     }
 }

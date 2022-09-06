@@ -28,6 +28,8 @@ public:
     [[nodiscard]] bool is_deleted() const { return deleted_; }
 
 private:
+    friend class Index;
+
     uint64_t offset_;
     uint64_t length_;
     std::time_t timestamp_;
@@ -64,7 +66,7 @@ public:
 
     void recover(Filter &filter);
 
-    IndexLevel &get_level(int level) { return levels[level]; }
+    IndexLevel &get_level(size_t level) { return levels[level]; }
 
 private:
     std::vector<IndexLevel> levels;

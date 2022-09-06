@@ -11,7 +11,7 @@ public:
      * there. Please refer to the c++ filesystem library
      * (https://en.cppreference.com/w/cpp/filesystem).
      */
-    KVStoreAPI(const std::string &dir) {}
+    explicit KVStoreAPI(const std::string &dir) {}
 
     KVStoreAPI() = delete;
 

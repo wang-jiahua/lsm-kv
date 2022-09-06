@@ -8,15 +8,16 @@
 #include <utility>
 #include <vector>
 
-struct DataNode {
-    uint64_t key;
-    std::string value;
-    bool deleted;
+class DataNode {
+public:
+    DataNode(uint64_t key, std::string value, bool deleted) :
+            key_(key),
+            value_(std::move(value)),
+            deleted_(deleted) {}
 
-    DataNode(uint64_t _key, std::string _value, bool _deleted) :
-            key(_key),
-            value(std::move(_value)),
-            deleted(_deleted) {}
+    uint64_t key_;
+    std::string value_;
+    bool deleted_;
 };
 
 using Data = std::vector<DataNode>;

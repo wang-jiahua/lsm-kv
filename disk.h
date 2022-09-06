@@ -38,7 +38,7 @@ private:
 
     uint64_t maxFileNums[maxLevel]{};
 
-    const uint64_t MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+    const uint64_t MAX_FILE_SIZE = 2U * 1024U * 1024U; // 2MB
 
 public:
     Disk();

@@ -1,6 +1,5 @@
 #include "kvstore.h"
 #include <string>
-#include <iostream>
 
 KVStore::KVStore(const std::string &dir) : KVStoreAPI(dir) {
     index.recover(filter);
@@ -36,7 +35,7 @@ std::string KVStore::get(uint64_t key) {
     int level = -1;
     uint64_t filename;
     uint64_t offset = UINT64_MAX;
-    uint64_t length = -1;
+    uint64_t length = 0U;
     index.get(key, level, filename, offset, length, deleted);
     if (offset == UINT64_MAX || deleted) {
         return {};

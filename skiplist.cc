@@ -6,7 +6,7 @@
 SkipList::SkipList() {
     head = std::make_shared<Node>(ULLONG_MAX, std::string(), maxLevel);
     level = 0;
-    size = 0;
+    size = 0U;
 }
 
 SkipList::~SkipList() { reset(); }
@@ -14,17 +14,17 @@ SkipList::~SkipList() { reset(); }
 int SkipList::getRandomLevel() {
     std::random_device seed;
     std::ranlux48 engine(seed());
-    std::uniform_int_distribution<unsigned> distribution(0, UINT32_MAX);
+    std::uniform_int_distribution<unsigned> distribution(0U, UINT32_MAX);
     int level = 0;
-    while (distribution(engine) % 2 == 1 && level < maxLevel) {
+    while (distribution(engine) % 2U == 1U && level < maxLevel) {
         ++level;
     }
     return level;
 }
 
 void SkipList::put(uint64_t key, const std::string &s) {
-    std::shared_ptr <Node> current = head;
-    std::shared_ptr <Node> update[maxLevel + 1];
+    std::shared_ptr<Node> current = head;
+    std::shared_ptr<Node> update[maxLevel + 1];
 
     for (int i = level; i >= 0; --i) {
         while (current->get_forward(i) != nullptr && current->get_forward(i)->get_key() < key) {
@@ -32,7 +32,7 @@ void SkipList::put(uint64_t key, const std::string &s) {
         }
         update[i] = current;
     }
-    current = current->get_forward(0);
+    current = current->get_forward(0U);
     // if key already exists
     if (current != nullptr && current->get_key() == key) {
         if (current->get_deleted()) {
@@ -62,13 +62,13 @@ void SkipList::put(uint64_t key, const std::string &s) {
 }
 
 std::string SkipList::get(uint64_t key, bool &deleted, bool &found) const {
-    std::shared_ptr <Node> current = head;
+    std::shared_ptr<Node> current = head;
     for (int i = maxLevel - 1; i >= 0; --i) {
         while (current->get_forward(i) != nullptr && current->get_forward(i)->get_key() < key) {
             current = current->get_forward(i);
         }
     }
-    current = current->get_forward(0);
+    current = current->get_forward(0U);
     if (current != nullptr && current->get_key() == key && !(current->get_deleted())) {
         deleted = false;
         found = true;
@@ -87,8 +87,8 @@ std::string SkipList::get(uint64_t key, bool &deleted, bool &found) const {
 }
 
 bool SkipList::del(uint64_t key, bool inIndex) {
-    std::shared_ptr <Node> current = head;
-    std::shared_ptr <Node> update[maxLevel + 1];
+    std::shared_ptr<Node> current = head;
+    std::shared_ptr<Node> update[maxLevel + 1];
 
     for (int i = level; i >= 0; --i) {
         while (current->get_forward(i) != nullptr && current->get_forward(i)->get_key() < key) {
@@ -96,7 +96,7 @@ bool SkipList::del(uint64_t key, bool inIndex) {
         }
         update[i] = current;
     }
-    current = current->get_forward(0);
+    current = current->get_forward(0U);
 
     // if key in memtable
     if (current != nullptr && current->get_key() == key) {
@@ -111,7 +111,7 @@ bool SkipList::del(uint64_t key, bool inIndex) {
         while (level > 0 && head->get_forward(level) == nullptr) {
             --level;
         }
-        size -= sizeof(key) * 2 + (current->get_value()).length() + 4;
+        size -= sizeof(key) * 2U + (current->get_value()).length() + 4U;
         return true;
     }
     // if key not in memtable or disk
@@ -120,7 +120,7 @@ bool SkipList::del(uint64_t key, bool inIndex) {
     }
     // if key in disk only, insert new node
     int randomLevel = getRandomLevel();
-    std::shared_ptr <Node> node = std::make_shared<Node>(key, "", randomLevel, true);
+    std::shared_ptr<Node> node = std::make_shared<Node>(key, "", randomLevel, true);
 
     if (randomLevel > level) {
         for (int i = level + 1; i <= randomLevel; ++i) {
@@ -139,23 +139,23 @@ bool SkipList::del(uint64_t key, bool inIndex) {
 }
 
 void SkipList::reset() {
-    std::shared_ptr <Node> current = head->get_forward(0);
+    std::shared_ptr<Node> current = head->get_forward(0);
     for (int i = 0; i < maxLevel; i++) {
         head->set_forward(i, nullptr);
     }
     while (current != nullptr) {
-        std::shared_ptr <Node> next = current->get_forward(0);
+        std::shared_ptr<Node> next = current->get_forward(0);
         for (int i = 0; i < current->get_level(); i++) {
             current->set_forward(i, nullptr);
         }
         current = next;
     }
-    size = 0;
+    size = 0U;
 }
 
 void SkipList::print() const {
     std::cout << "-------------------------------------------\n";
-    std::shared_ptr <Node> current = head;
+    std::shared_ptr<Node> current = head;
     while (current != nullptr) {
         for (int j = 0; j <= current->get_level(); ++j) {
             std::cout << current->get_key() << "(";
@@ -167,7 +167,7 @@ void SkipList::print() const {
             std::cout << ")" << '\t';
         }
         std::cout << std::endl;
-        current = current->get_forward(0);
+        current = current->get_forward(0U);
     }
     std::cout << "-------------------------------------------\n";
 }
@@ -176,10 +176,10 @@ uint64_t SkipList::getSize() const { return size; }
 
 Data SkipList::traverse() const {
     Data data;
-    std::shared_ptr <Node> current = head->get_forward(0);
+    std::shared_ptr<Node> current = head->get_forward(0U);
     while (current != nullptr) {
-        data.emplace_back(DataNode(current->get_key(), current->get_value(), current->get_deleted()));
-        current = current->get_forward(0);
+        (void) data.emplace_back(DataNode(current->get_key(), current->get_value(), current->get_deleted()));
+        current = current->get_forward(0U);
     }
     return data;
 }
