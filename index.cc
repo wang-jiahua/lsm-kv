@@ -15,9 +15,9 @@ void Index::get(uint64_t key, int &level, uint64_t &filename, uint64_t &offset, 
         // search from the latest one
         for (auto &indexKV: levels[level]) {
             uint64_t timestamp = indexKV.first;
-            IndexTree *indexTree = indexKV.second;
+            std::shared_ptr <IndexTree> indexTree = indexKV.second;
             auto iter = indexTree->find(key);
-            // if find key in this file
+            // if key found in this file
             if (iter != indexTree->end()) {
                 filename = timestamp;
                 offset = iter->second->get_offset();
@@ -32,7 +32,7 @@ void Index::get(uint64_t key, int &level, uint64_t &filename, uint64_t &offset, 
 bool Index::find(uint64_t key) {
     for (auto &level: levels) {
         for (auto &pair: level) {
-            IndexTree *tree = pair.second;
+            std::shared_ptr <IndexTree> tree = pair.second;
             auto iter = tree->find(key);
             // if key in disk and not marked as deleted
             if (iter != tree->end() && !(iter->second->is_deleted())) {
@@ -51,31 +51,21 @@ Index::put(uint64_t key, int level, const std::string &filename, uint64_t offset
     }
     // if file not existed, create it
     if (levels[level].count(std::stoull(filename)) == 0) {
-        levels[level].insert({std::stoull(filename), new IndexTree()});
+        (void) levels[level].insert({std::stoull(filename), std::make_shared<IndexTree>()});
     }
-    IndexTree *tree = levels[level][std::stoull(filename)];
-    tree->insert({key, new IndexNode(offset, length, timestamp, deleted)});
+    auto &tree = levels[level][std::stoull(filename)];
+    (void) tree->insert({key, std::make_shared<IndexNode>(offset, length, timestamp, deleted)});
 }
 
 Index::Index() {
-    levels = std::vector<IndexLevel>(maxLevel);
+    levels = std::vector<IndexLevel>(maxLevel, IndexLevel());
 }
 
-Index::~Index() {
-
-}
+Index::~Index() = default;
 
 void Index::reset() {
-    for (auto &level: levels) {
-        for (auto &pair: level) {
-            IndexTree *tree = pair.second;
-            for (auto &kv: *tree) {
-                IndexNode *node = kv.second;
-                delete node;
-            }
-            delete tree;
-        }
-    }
+    levels.clear();
+    levels = std::vector<IndexLevel>(maxLevel, IndexLevel());
 }
 
 void Index::recover(Filter &filter) {
@@ -91,8 +81,8 @@ void Index::recover(Filter &filter) {
 
         // get number of key-value pairs in the last 2 bytes
         uint64_t n = 0;
-        file.seekg(-sizeof(uint64_t), file.end);
-        file.read(reinterpret_cast<char *>(&n), sizeof(uint64_t));
+        (void) file.seekg(-sizeof(uint64_t), file.end);
+        (void) file.read(reinterpret_cast<char *>(&n), sizeof(uint64_t));
 
         std::size_t pos = path.find('/');
         path = path.substr(pos + 1, path.size());
@@ -100,16 +90,16 @@ void Index::recover(Filter &filter) {
         for (uint64_t i = 1; i <= n; i++) {
             // recover key
             uint64_t key;
-            file.seekg((int) (-sizeof(uint64_t) * (1 + 2 * i)), file.end);
-            file.read(reinterpret_cast<char *>(&key), sizeof(uint64_t));
+            (void) file.seekg((int) (-sizeof(uint64_t) * (1 + 2 * i)), std::ios_base::end);
+            (void) file.read(reinterpret_cast<char *>(&key), sizeof(uint64_t));
             // recover offset
             uint64_t offset = 0;
-            file.seekg((int) (-sizeof(uint64_t) * (2 * i)), std::ios_base::end);
-            file.read(reinterpret_cast<char *>(&offset), sizeof(uint64_t));
+            (void) file.seekg((int) (-sizeof(uint64_t) * (2 * i)), std::ios_base::end);
+            (void) file.read(reinterpret_cast<char *>(&offset), sizeof(uint64_t));
             // recover value
             std::string s;
-            file.seekg(offset + sizeof(uint64_t));
-            std::getline(file, s, '\0');
+            (void) file.seekg(offset + sizeof(uint64_t));
+            (void) std::getline(file, s, '\0');
 
             pos = path.find('/');
             int level = std::stoi(path.substr(0, pos));

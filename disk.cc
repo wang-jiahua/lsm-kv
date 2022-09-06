@@ -98,7 +98,7 @@ void Disk::compact(Index &index, int level, Filter &filter) {
 
     for (size_t i = 0; i < num; i++) {
         uint64_t filename = treeKV1->first;
-        IndexTree *tree = treeKV1->second;
+        auto tree = treeKV1->second;
         uint64_t lower = tree->begin()->first;
         uint64_t upper = tree->rbegin()->first;
         // ranges in this level
@@ -110,7 +110,7 @@ void Disk::compact(Index &index, int level, Filter &filter) {
     // search files to merge in the next level
     for (auto &treeKV: index.get_level(level + 1)) {
         uint64_t filename = treeKV.first;
-        IndexTree *tree = treeKV.second;
+        auto tree = treeKV.second;
         uint64_t lower = tree->begin()->first;
         uint64_t upper = tree->rbegin()->first;
         if (inRange(lower, upper, range)) {
@@ -137,7 +137,7 @@ void Disk::compact(Index &index, int level, Filter &filter) {
         MergeNode latest = queue.top();
         auto tmp = latest.iter;
         queue.pop();
-        IndexTree *tree = index.get_level(latest.level)[latest.filename];
+        auto tree = index.get_level(latest.level)[latest.filename];
         if (++tmp != tree->end()) {
             queue.push(MergeNode(latest.level, latest.filename, tmp));
         }
@@ -157,7 +157,7 @@ void Disk::compact(Index &index, int level, Filter &filter) {
                 auto tmp1 = queue.top();
                 queue.pop();
 
-                IndexTree *tree1 = index.get_level(tmp1.level)[tmp1.filename];
+                auto tree1 = index.get_level(tmp1.level)[tmp1.filename];
                 auto tmp2 = tmp1.iter;
                 if (++tmp2 != tree1->end()) {
                     queue.push(MergeNode(tmp1.level, tmp1.filename, tmp2));

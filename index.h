@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <memory>
 
 #include "filter.h"
 
@@ -18,13 +19,13 @@ public:
         timestamp_(timestamp),
         deleted_(deleted) {}
 
-    uint64_t get_offset() const { return offset_; }
+    [[nodiscard]] uint64_t get_offset() const { return offset_; }
 
-    uint64_t get_length() const { return length_; }
+    [[nodiscard]] uint64_t get_length() const { return length_; }
 
-    std::time_t get_timestamp() const { return timestamp_; }
+    [[nodiscard]] std::time_t get_timestamp() const { return timestamp_; }
 
-    bool is_deleted() const { return deleted_; }
+    [[nodiscard]] bool is_deleted() const { return deleted_; }
 
 private:
     uint64_t offset_;
@@ -33,8 +34,8 @@ private:
     bool deleted_;
 };
 
-typedef std::map<uint64_t, IndexNode *> IndexTree;                  // key -> info
-typedef std::map<uint64_t, IndexTree *, std::greater<>> IndexLevel; // filename -> tree
+typedef std::map <uint64_t, std::shared_ptr<IndexNode>> IndexTree;       // key -> info
+typedef std::map <uint64_t, std::shared_ptr<IndexTree>, std::greater<>> IndexLevel; // filename -> tree
 
 class Index {
 public:
@@ -63,11 +64,7 @@ public:
 
     void recover(Filter &filter);
 
-    std::vector <IndexLevel> get_levels() const { return levels; }
-
     IndexLevel &get_level(int level) { return levels[level]; }
-
-//    IndexLevel get_level(int level) const { return levels[level]; }
 
 private:
     std::vector <IndexLevel> levels;
