@@ -2,8 +2,8 @@
 #include <string>
 #include <iostream>
 
-KVStore::KVStore(const std::string &dir) : KVStoreAPI(dir) {
-    MemTable = SkipList();
+KVStore::KVStore(const std::string &dir) : KVStoreAPI(dir), MemTable(SkipList()) {
+//    MemTable = SkipList();
     index.recover(filter);
 }
 

@@ -1,32 +1,34 @@
 #pragma once
 
 #include "data.h"
+
 #include <cstring>
 #include <string>
 #include <utility>
+#include <memory>
+#include <vector>
 
 constexpr int maxLevel = 20;
 
 class SkipList {
-    struct Node {
+    class Node {
     public:
         Node(uint64_t key, std::string s, int level, bool deleted = false)
                 : key_(key), value_(std::move(s)), level_(level), deleted_(deleted) {
-            forward_ = new Node *[level + 1];
-            memset(forward_, 0, (level + 1) * sizeof(Node *));
+            forward_ = std::vector < std::shared_ptr < Node >> (level_ + 1);
         }
 
-        ~Node() { delete[] forward_; }
+        ~Node() {}
 
         uint64_t get_key() const { return key_; }
 
         std::string get_value() const { return value_; }
 
-        void set_value(std::string s) { value_ = std::move(s); }
+        void set_value(const std::string s) { value_ = std::move(s); }
 
-        Node *get_forward(int i) const { return forward_[i]; }
+        std::shared_ptr <Node> get_forward(int i) const { return std::move(forward_[i]); }
 
-        void set_forward(int i, Node *node) { forward_[i] = node; }
+        void set_forward(int i, std::shared_ptr <Node> node) { forward_[i] = std::move(node); }
 
         int get_level() const { return level_; }
 
@@ -37,13 +39,13 @@ class SkipList {
     private:
         uint64_t key_;
         std::string value_;
-        Node **forward_;
+        std::vector <std::shared_ptr<Node>> forward_;
         int level_;
         bool deleted_;
     };
 
 private:
-    Node *head;
+    std::shared_ptr <Node> head;
     int level;
     uint64_t size;
 
