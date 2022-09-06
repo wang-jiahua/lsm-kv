@@ -26,7 +26,7 @@ public:
 
     bool del(uint64_t key) override;
 
-    void reset() override;
+    virtual void reset() override;
 
     void print() const;
 };

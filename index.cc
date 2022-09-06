@@ -7,22 +7,22 @@
 namespace fs = std::filesystem;
 
 void Index::get(uint64_t key, int &level, uint64_t &filename, uint64_t &offset, uint64_t &length, bool &deleted) const {
-    if (trees.empty()) {
+    if (levels.empty()) {
         return;
     }
     // search top-down
     for (level = 0; level < maxLevel; ++level) {
         // search from the latest one
-        for (auto &indexKV: trees[level]) {
+        for (auto &indexKV: levels[level]) {
             uint64_t timestamp = indexKV.first;
             IndexTree *indexTree = indexKV.second;
             auto iter = indexTree->find(key);
             // if find key in this file
             if (iter != indexTree->end()) {
                 filename = timestamp;
-                offset = iter->second->offset;
-                length = iter->second->length;
-                deleted = iter->second->deleted;
+                offset = iter->second->get_offset();
+                length = iter->second->get_length();
+                deleted = iter->second->is_deleted();
                 return;
             }
         }
@@ -30,12 +30,12 @@ void Index::get(uint64_t key, int &level, uint64_t &filename, uint64_t &offset, 
 }
 
 bool Index::find(uint64_t key) {
-    for (auto &level: trees) {
+    for (auto &level: levels) {
         for (auto &pair: level) {
             IndexTree *tree = pair.second;
             auto iter = tree->find(key);
             // if key in disk and not marked as deleted
-            if (iter != tree->end() && !(iter->second->deleted)) {
+            if (iter != tree->end() && !(iter->second->is_deleted())) {
                 return true;
             }
         }
@@ -50,15 +50,15 @@ Index::put(uint64_t key, int level, const std::string &filename, uint64_t offset
         return;
     }
     // if file not existed, create it
-    if (trees[level].count(std::stoull(filename)) == 0) {
-        trees[level].insert({std::stoull(filename), new IndexTree()});
+    if (levels[level].count(std::stoull(filename)) == 0) {
+        levels[level].insert({std::stoull(filename), new IndexTree()});
     }
-    IndexTree *tree = trees[level][std::stoull(filename)];
+    IndexTree *tree = levels[level][std::stoull(filename)];
     tree->insert({key, new IndexNode(offset, length, timestamp, deleted)});
 }
 
 Index::Index() {
-    trees = std::vector<IndexLevel>(maxLevel);
+    levels = std::vector<IndexLevel>(maxLevel);
 }
 
 Index::~Index() {
@@ -66,7 +66,7 @@ Index::~Index() {
 }
 
 void Index::reset() {
-    for (auto &level: trees) {
+    for (auto &level: levels) {
         for (auto &pair: level) {
             IndexTree *tree = pair.second;
             for (auto &kv: *tree) {

@@ -28,8 +28,8 @@ void Disk::put(int level, const Data &data, Index &index, Filter &filter) {
     fs::create_directories("data/" + std::to_string(level));
     file.open("data/" + std::to_string(level) + "/" + filename, std::ios::out | std::ios::binary);
 
-    std::vector<uint64_t> offsets;
-    std::vector<uint64_t> lengths;
+    std::vector <uint64_t> offsets;
+    std::vector <uint64_t> lengths;
 
     for (auto &kv: data) {
         // record offset and length
@@ -75,26 +75,26 @@ void Disk::put(int level, const Data &data, Index &index, Filter &filter) {
 
     file.close();
 
-    if (index.trees[level].size() > maxFileNums[level]) {
+    if (index.get_level(level).size() > maxFileNums[level]) {
         compact(index, level, filter);
     }
 }
 
 void Disk::compact(Index &index, int level, Filter &filter) {
     // record information to merge
-    std::vector<MergeNode> toMerge;
+    std::vector <MergeNode> toMerge;
 
     Range range;
 
     // number of files to merge in this level
     size_t num = 0;
     if (level == 0) {
-        num = index.trees[level].size();
+        num = index.get_level(level).size();
     } else {
-        num = index.trees[level].size() - maxFileNums[level];
+        num = index.get_level(level).size() - maxFileNums[level];
     }
 
-    auto treeKV1 = index.trees[level].begin();
+    auto treeKV1 = index.get_level(level).begin();
 
     for (size_t i = 0; i < num; i++) {
         uint64_t filename = treeKV1->first;
@@ -108,7 +108,7 @@ void Disk::compact(Index &index, int level, Filter &filter) {
     }
 
     // search files to merge in the next level
-    for (auto &treeKV: index.trees[level + 1]) {
+    for (auto &treeKV: index.get_level(level + 1)) {
         uint64_t filename = treeKV.first;
         IndexTree *tree = treeKV.second;
         uint64_t lower = tree->begin()->first;
@@ -124,7 +124,7 @@ void Disk::compact(Index &index, int level, Filter &filter) {
         }
     };
 
-    std::priority_queue<MergeNode, std::vector<MergeNode>, cmp> queue;
+    std::priority_queue <MergeNode, std::vector<MergeNode>, cmp> queue;
 
     for (auto &node: toMerge) {
         queue.push(node);
@@ -137,27 +137,27 @@ void Disk::compact(Index &index, int level, Filter &filter) {
         MergeNode latest = queue.top();
         auto tmp = latest.iter;
         queue.pop();
-        IndexTree *tree = index.trees[latest.level][latest.filename];
+        IndexTree *tree = index.get_level(latest.level)[latest.filename];
         if (++tmp != tree->end()) {
             queue.push(MergeNode(latest.level, latest.filename, tmp));
         }
 
         uint64_t key = latest.iter->first;
-        std::time_t timestamp = latest.iter->second->timestamp;
+        std::time_t timestamp = latest.iter->second->get_timestamp();
 
         if (!queue.empty()) {
             MergeNode top = queue.top();
             // find the latest one with the same key
             while (!queue.empty() && queue.top().iter != latest.iter && queue.top().iter->first == key) {
-                if (queue.top().iter->second->timestamp >= timestamp) {
+                if (queue.top().iter->second->get_timestamp() >= timestamp) {
                     latest = queue.top();
-                    timestamp = queue.top().iter->second->timestamp;
+                    timestamp = queue.top().iter->second->get_timestamp();
                 }
 
                 auto tmp1 = queue.top();
                 queue.pop();
 
-                IndexTree *tree1 = index.trees[tmp1.level][tmp1.filename];
+                IndexTree *tree1 = index.get_level(tmp1.level)[tmp1.filename];
                 auto tmp2 = tmp1.iter;
                 if (++tmp2 != tree1->end()) {
                     queue.push(MergeNode(tmp1.level, tmp1.filename, tmp2));
@@ -169,8 +169,9 @@ void Disk::compact(Index &index, int level, Filter &filter) {
         // have found the latest one, record it
         key = latest.iter->first;
         std::string value =
-                get(latest.level, latest.filename, latest.iter->second->offset, latest.iter->second->length);
-        bool deleted = latest.iter->second->deleted;
+                get(latest.level, latest.filename, latest.iter->second->get_offset(),
+                    latest.iter->second->get_length());
+        bool deleted = latest.iter->second->is_deleted();
 
         data.emplace_back(DataNode(key, value, deleted));
         size += sizeof(uint64_t) + value.size() + sizeof(uint64_t) + sizeof(uint64_t);
@@ -186,7 +187,7 @@ void Disk::compact(Index &index, int level, Filter &filter) {
 
     // delete merged files
     for (auto &node: toMerge) {
-        index.trees[node.level].erase(node.filename);
+        index.get_level(node.level).erase(node.filename);
         fs::remove("data/" + std::to_string(node.level) + "/" + std::to_string(node.filename));
     }
 }

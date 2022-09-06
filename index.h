@@ -8,17 +8,29 @@
 #include "filter.h"
 
 class IndexNode {
-
 public:
-    IndexNode(uint64_t _offset, uint64_t _length, std::time_t _timestamp, bool _deleted)
-            : offset(_offset), length(_length), timestamp(_timestamp), deleted(_deleted) {
-    }
+    IndexNode(uint64_t offset,
+              uint64_t length,
+              std::time_t timestamp,
+              bool deleted
+    ) : offset_(offset),
+        length_(length),
+        timestamp_(timestamp),
+        deleted_(deleted) {}
 
-public:
-    uint64_t offset;
-    uint64_t length;
-    std::time_t timestamp;
-    bool deleted;
+    uint64_t get_offset() const { return offset_; }
+
+    uint64_t get_length() const { return length_; }
+
+    std::time_t get_timestamp() const { return timestamp_; }
+
+    bool is_deleted() const { return deleted_; }
+
+private:
+    uint64_t offset_;
+    uint64_t length_;
+    std::time_t timestamp_;
+    bool deleted_;
 };
 
 typedef std::map<uint64_t, IndexNode *> IndexTree;                  // key -> info
@@ -26,22 +38,38 @@ typedef std::map<uint64_t, IndexTree *, std::greater<>> IndexLevel; // filename 
 
 class Index {
 public:
-    std::vector <IndexLevel> trees;
-    const int maxLevel = 20;
-
-public:
     Index();
 
     ~Index();
 
-    void get(uint64_t key, int &level, uint64_t &filename, uint64_t &offset, uint64_t &length, bool &deleted) const;
+    void get(uint64_t key,
+             int &level,
+             uint64_t &filename,
+             uint64_t &offset,
+             uint64_t &length,
+             bool &deleted) const;
 
-    void put(uint64_t key, int level, const std::string &filename, uint64_t offset, uint64_t length,
-             std::time_t timestamp, bool deleted);
+    void put(uint64_t key,
+             int level,
+             const std::string &filename,
+             uint64_t offset,
+             uint64_t length,
+             std::time_t timestamp,
+             bool deleted);
 
     bool find(uint64_t key);
 
     void reset();
 
     void recover(Filter &filter);
+
+    std::vector <IndexLevel> get_levels() const { return levels; }
+
+    IndexLevel &get_level(int level) { return levels[level]; }
+
+//    IndexLevel get_level(int level) const { return levels[level]; }
+
+private:
+    std::vector <IndexLevel> levels;
+    const int maxLevel = 20;
 };
