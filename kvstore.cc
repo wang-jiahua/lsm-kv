@@ -24,7 +24,7 @@ void KVStore::put(uint64_t key, const std::string &s) {
  * Returns the (string) value of the given key.
  * An empty string indicates not found.
  */
-std::string KVStore::get(uint64_t key) {
+std::string KVStore::get(uint64_t key) const {
     bool deleted = false;
     bool found = true;
     const std::string &s = MemTable.get(key, deleted, found);
@@ -45,6 +45,21 @@ std::string KVStore::get(uint64_t key) {
     }
     // get in disk
     return disk.get(level, filename, offset, length);
+}
+
+/**
+ * Gets the key-value pairs between [lower, upper].
+ * @param lower the lower bound of the key range (inclusive)
+ * @param upper the upper bound of the key range (inclusive)
+ * @param result the result vector to be filled
+ */
+void KVStore::scan(uint64_t lower, uint64_t upper, std::vector<std::pair<uint64_t, const std::string>> &result) const {
+    for (uint64_t key = lower; key <= upper; key++) {
+        const std::string value = get(key);
+        if (!value.empty()) {
+            (void) result.emplace_back(key, value);
+        }
+    }
 }
 
 /**

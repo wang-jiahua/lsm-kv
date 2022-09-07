@@ -22,7 +22,10 @@ public:
 
     void put(uint64_t key, const std::string &s) override;
 
-    std::string get(uint64_t key) override;
+    [[nodiscard]] std::string get(uint64_t key) const override;
+
+    void
+    scan(uint64_t lower, uint64_t upper, std::vector<std::pair<uint64_t, const std::string>> &result) const override;
 
     bool del(uint64_t key) override;
 

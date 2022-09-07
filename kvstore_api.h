@@ -25,7 +25,16 @@ public:
      * Returns the (string) value of the given key.
      * An empty string indicates not found.
      */
-    virtual std::string get(uint64_t key) = 0;
+    [[nodiscard]] virtual std::string get(uint64_t key) const = 0;
+
+    /**
+     * Gets the key-value pairs between [lower, upper].
+     * @param lower the lower bound of the key range (inclusive)
+     * @param upper the upper bound of the key range (inclusive)
+     * @param result the result vector to be filled
+     */
+    virtual void
+    scan(uint64_t lower, uint64_t upper, std::vector<std::pair<uint64_t, const std::string>> &result) const = 0;
 
     /**
      * Delete the given key-value pair if it exists.
@@ -39,4 +48,3 @@ public:
      */
     virtual void reset() = 0;
 };
-
