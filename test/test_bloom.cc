@@ -7,9 +7,9 @@
 
 class BloomTest : public Test {
 private:
-    const uint64_t SIMPLE_TEST_MAX = 512;
-    const uint64_t MIDDLE_TEST_MAX = 1024 * 64;
-    const uint64_t LARGE_TEST_MAX = 1024 * 1024 * 8;
+    const uint64_t SIMPLE_TEST_MAX = 512U;
+    const uint64_t MIDDLE_TEST_MAX = 1024U * 64U;
+    const uint64_t LARGE_TEST_MAX = 1024U * 1024U * 8U;
 
     BloomFilter bloomFilter{};
 
@@ -17,31 +17,33 @@ private:
         uint64_t i;
 
         // Test a single key
-        EXPECT(false, bloomFilter.contains(1));
-        bloomFilter.add(1);
-        EXPECT(true, bloomFilter.contains(1));
+        EXPECT(false, bloomFilter.contains(1U));
+        bloomFilter.add(1U);
+        EXPECT(true, bloomFilter.contains(1U));
         bloomFilter.reset();
-        EXPECT(false, bloomFilter.contains(1));
+        EXPECT(false, bloomFilter.contains(1U));
 
         phase();
 
         // Test multiple additions
-        for (i = 0; i < max; ++i) {
+        for (i = 0U; i < max; ++i) {
             bloomFilter.add(i);
             EXPECT(true, bloomFilter.contains(i));
         }
         phase();
 
         // Test after all additions
-        for (i = 0; i < max; ++i)
+        for (i = 0U; i < max; ++i) {
             EXPECT(true, bloomFilter.contains(i));
+        }
         phase();
 
         bloomFilter.reset();
 
         // Test after reset
-        for (i = 0; i < max; i += 1)
+        for (i = 0U; i < max; i += 1U) {
             EXPECT(false, bloomFilter.contains(i));
+        }
         phase();
 
         report();
@@ -73,7 +75,7 @@ int main(int argc, char *argv[]) {
     std::cout << "  -v: print extra info for failed tests [currently ";
     std::cout << (verbose ? "ON" : "OFF") << "]" << std::endl;
     std::cout << std::endl;
-    std::cout.flush();
+    (void) std::cout.flush();
 
     BloomTest test(".", verbose);
 

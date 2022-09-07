@@ -7,50 +7,57 @@
 
 class PersistenceTest : public Test {
 private:
-    const uint64_t TEST_MAX = 1024 * 4;
+    const uint64_t TEST_MAX = 1024U * 4U;
 
-    void prepare(uint64_t max) {
+    [[noreturn]] void prepare(uint64_t max) {
         uint64_t i;
         // Clean up
         store.reset();
         // Test multiple key-value pairs
-        for (i = 0; i < max; ++i) {
+        for (i = 0U; i < max; ++i) {
             store.put(i, std::string(i + 1, 's'));
-            EXPECT(std::string(i + 1, 's'), store.get(i));
+            EXPECT(std::string(i + 1U, 's'), store.get(i));
         }
         phase();
 
         // Test after all insertions
-        for (i = 0; i < max; ++i)
-            EXPECT(std::string(i + 1, 's'), store.get(i));
+        for (i = 0U; i < max; ++i) {
+            EXPECT(std::string(i + 1U, 's'), store.get(i));
+        }
         phase();
 
         // Test deletions
-        for (i = 0; i < max; i += 2)
+        for (i = 0U; i < max; i += 2U) {
             EXPECT(true, store.del(i));
+        }
         phase();
 
         // Prepare data for Test Mode
-        for (i = 0; i < max; ++i) {
-            switch (i & 3) {
-                case 0:
+        for (i = 0U; i < max; ++i) {
+            switch (i & 3U) {
+                case 0U: {
                     EXPECT(not_found, store.get(i));
-                    store.put(i, std::string(i + 1, 't'));
-                    EXPECT(std::string(i + 1, 't'), store.get(i));
+                    store.put(i, std::string(i + 1U, 't'));
+                    EXPECT(std::string(i + 1U, 't'), store.get(i));
                     break;
-                case 1:
-                    EXPECT(std::string(i + 1, 's'), store.get(i));
-                    store.put(i, std::string(i + 1, 't'));
-                    EXPECT(std::string(i + 1, 't'), store.get(i));
+                }
+                case 1U: {
+                    EXPECT(std::string(i + 1U, 's'), store.get(i));
+                    store.put(i, std::string(i + 1U, 't'));
+                    EXPECT(std::string(i + 1U, 't'), store.get(i));
                     break;
-                case 2:
+                }
+                case 2U: {
                     EXPECT(not_found, store.get(i));
                     break;
-                case 3:
-                    EXPECT(std::string(i + 1, 's'), store.get(i));
+                }
+                case 3U: {
+                    EXPECT(std::string(i + 1U, 's'), store.get(i));
                     break;
-                default:
+                }
+                default: {
                     assert(0);
+                }
             }
         }
 
@@ -61,32 +68,36 @@ private:
         /**
          * Write 10MB data to drain previous data out of memory.
          */
-        for (i = 0; i <= 10240; ++i)
-            store.put(max + i, std::string(1024, 'x'));
+        for (i = 0U; i <= 10240U; ++i) {
+            store.put(max + i, std::string(1024U, 'x'));
+        }
 
         std::cout << "Data is ready, please press ctrl-c/ctrl-d to"
                      " terminate this program!"
                   << std::endl;
-        std::cout.flush();
+        (void) std::cout.flush();
 
         while (true) {
-            volatile int dummy;
-            for (i = 0; i <= 1024; ++i) {
+            volatile uint64_t dummy;
+            for (i = 0U; i <= 1024U; ++i) {
                 // The loop slows down the program
-                for (i = 0; i <= 1000; ++i)
-                    dummy = i;
+                for (uint64_t j = 0U; j <= 1000U; ++j) {
+                    dummy = j;
+                }
 
-                store.del(max + i);
+                (void) store.del(max + i);
 
-                for (i = 0; i <= 1000; ++i)
-                    dummy = i;
+                for (uint64_t j = 0U; j <= 1000U; ++j) {
+                    dummy = j;
+                }
 
-                store.put(max + i, std::string(1024, '.'));
+                store.put(max + i, std::string(1024U, '.'));
 
-                for (i = 0; i <= 1000; ++i)
-                    dummy = i;
+                for (uint64_t j = 0U; j <= 1000U; ++j) {
+                    dummy = j;
+                }
 
-                store.put(max + i, std::string(512, 'x'));
+                store.put(max + i, std::string(512U, 'x'));
             }
         }
     }
@@ -94,19 +105,19 @@ private:
     void test(uint64_t max) {
         uint64_t i;
         // Test data
-        for (i = 0; i < max; ++i) {
-            switch (i & 3) {
-                case 0:
-                    EXPECT(std::string(i + 1, 't'), store.get(i));
+        for (i = 0U; i < max; ++i) {
+            switch (i & 3U) {
+                case 0U:
+                    EXPECT(std::string(i + 1U, 't'), store.get(i));
                     break;
-                case 1:
-                    EXPECT(std::string(i + 1, 't'), store.get(i));
+                case 1U:
+                    EXPECT(std::string(i + 1U, 't'), store.get(i));
                     break;
-                case 2:
+                case 2U:
                     EXPECT(not_found, store.get(i));
                     break;
-                case 3:
-                    EXPECT(std::string(i + 1, 's'), store.get(i));
+                case 3U:
+                    EXPECT(std::string(i + 1U, 's'), store.get(i));
                     break;
                 default:
                     assert(0);
@@ -123,8 +134,8 @@ public:
             : Test(dir, v) {
     }
 
-    void start_test(void *args = NULL) override {
-        bool testmode = (args && *static_cast<bool *>(args));
+    void start_test(void *args = nullptr) override {
+        bool testmode = (args != nullptr && *static_cast<bool *>(args));
 
         std::cout << "KVStore Persistence Test" << std::endl;
 
@@ -153,7 +164,7 @@ void usage(const char *prog, const char *verb, const char *mode) {
     std::cout << std::endl;
     std::cout << "    3. invoke `" << prog << " -t ` to test." << std::endl;
     std::cout << std::endl;
-    std::cout.flush();
+    (void) std::cout.flush();
 }
 
 int main(int argc, char *argv[]) {

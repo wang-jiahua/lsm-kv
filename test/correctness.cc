@@ -6,44 +6,45 @@
 
 class CorrectnessTest : public Test {
 private:
-    const uint64_t SIMPLE_TEST_MAX = 512;
-    const uint64_t LARGE_TEST_MAX = 1024 * 4;
+    const uint64_t SIMPLE_TEST_MAX = 512U;
+    const uint64_t LARGE_TEST_MAX = 1024U * 4U;
 
     void regular_test(uint64_t max) {
         uint64_t i;
 
         // Test a single key
-        EXPECT(not_found, store.get(1));
-        store.put(1, "SE");
-        EXPECT("SE", store.get(1));
-        EXPECT(true, store.del(1));
-        EXPECT(not_found, store.get(1));
-        EXPECT(false, store.del(1));
+        EXPECT(not_found, store.get(1U));
+        store.put(1U, "SE");
+        EXPECT("SE", store.get(1U));
+        EXPECT(true, store.del(1U));
+        EXPECT(not_found, store.get(1U));
+        EXPECT(false, store.del(1U));
 
         phase();
 
         // Test multiple key-value pairs
-        for (i = 0; i < max; ++i) {
-            store.put(i, std::string(i + 1, 's'));
-            EXPECT(std::string(i + 1, 's'), store.get(i));
+        for (i = 0U; i < max; ++i) {
+            store.put(i, std::string(i + 1U, 's'));
+            EXPECT(std::string(i + 1U, 's'), store.get(i));
         }
         phase();
 
         // Test after all insertions
-        for (i = 0; i < max; ++i)
-            EXPECT(std::string(i + 1, 's'), store.get(i));
+        for (i = 0U; i < max; ++i) {
+            EXPECT(std::string(i + 1U, 's'), store.get(i));
+        }
         phase();
 
         // Test deletions
-        for (i = 0; i < max; i += 2)
+        for (i = 0U; i < max; i += 2U) {
             EXPECT(true, store.del(i));
-
-        for (i = 0; i < max; ++i)
-            EXPECT((i & 1) ? std::string(i + 1, 's') : not_found, store.get(i));
-
-        for (i = 1; i < max; ++i)
-            EXPECT(i & 1, store.del(i));
-
+        }
+        for (i = 0U; i < max; ++i) {
+            EXPECT((i & 1U) ? std::string(i + 1U, 's') : not_found, store.get(i));
+        }
+        for (i = 1U; i < max; ++i) {
+            EXPECT(i & 1U, store.del(i));
+        }
         phase();
 
         report();
@@ -72,7 +73,7 @@ int main(int argc, char *argv[]) {
     std::cout << "  -v: print extra info for failed tests [currently ";
     std::cout << (verbose ? "ON" : "OFF") << "]" << std::endl;
     std::cout << std::endl;
-    std::cout.flush();
+    (void) std::cout.flush();
 
     CorrectnessTest test("./data", verbose);
 
