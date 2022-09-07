@@ -54,6 +54,7 @@ std::string KVStore::get(uint64_t key) const {
  * @param result the result vector to be filled
  */
 void KVStore::scan(uint64_t lower, uint64_t upper, std::vector<std::pair<uint64_t, const std::string>> &result) const {
+    result.clear();
     for (uint64_t key = lower; key <= upper; key++) {
         const std::string value = get(key);
         if (!value.empty()) {
