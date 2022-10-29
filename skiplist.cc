@@ -35,7 +35,7 @@ void SkipList::put(uint64_t key, const std::string &s) {
     current = current->get_forward(0U);
     // if key already exists
     if (current != nullptr && current->get_key() == key) {
-        if (current->get_deleted()) {
+        if (current->is_deleted()) {
             current->set_deleted(false);
         }
         size += s.length() - (current->get_value()).length();
@@ -69,7 +69,7 @@ std::string SkipList::get(uint64_t key, bool &deleted, bool &found) const {
         }
     }
     current = current->get_forward(0U);
-    if (current != nullptr && current->get_key() == key && !(current->get_deleted())) {
+    if (current != nullptr && current->get_key() == key && !(current->is_deleted())) {
         deleted = false;
         found = true;
         return current->get_value();
@@ -84,6 +84,22 @@ std::string SkipList::get(uint64_t key, bool &deleted, bool &found) const {
     deleted = true;
     found = true;
     return {};
+}
+
+void SkipList::scan(uint64_t lower, uint64_t upper, std::vector<std::pair<uint64_t, std::string>> &result) const {
+    std::shared_ptr<Node> current = head;
+    for (int i = maxLevel - 1; i >= 0; --i) {
+        while (current->get_forward(i) != nullptr && current->get_forward(i)->get_key() < lower) {
+            current = current->get_forward(i);
+        }
+    }
+    current = current->get_forward(0U);
+    while (current != nullptr && current->get_key() <= upper) {
+        if (!(current->is_deleted())) {
+            (void) result.emplace_back(current->get_key(), current->get_value());
+        }
+        current = current->get_forward(0U);
+    }
 }
 
 bool SkipList::del(uint64_t key, bool inIndex) {
@@ -101,7 +117,7 @@ bool SkipList::del(uint64_t key, bool inIndex) {
     // if key in memtable
     if (current != nullptr && current->get_key() == key) {
         // if key marked as deleted in memtable
-        if (current->get_deleted()) {
+        if (current->is_deleted()) {
             return false;
         }
         // if key not deleted
@@ -178,7 +194,7 @@ Data SkipList::traverse() const {
     Data data;
     std::shared_ptr<Node> current = head->get_forward(0U);
     while (current != nullptr) {
-        (void) data.emplace_back(DataNode(current->get_key(), current->get_value(), current->get_deleted()));
+        (void) data.emplace_back(DataNode(current->get_key(), current->get_value(), current->is_deleted()));
         current = current->get_forward(0U);
     }
     return data;

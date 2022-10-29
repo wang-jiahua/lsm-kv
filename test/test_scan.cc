@@ -7,7 +7,7 @@
 class ScanTest : public Test {
 private:
     const uint64_t SIMPLE_TEST_MAX = 512U;
-    const uint64_t LARGE_TEST_MAX = 1024U * 4U;
+    const uint64_t LARGE_TEST_MAX = 1024U * 8U;
 
     void regular_test(uint64_t max) {
         uint64_t i;
@@ -55,7 +55,7 @@ public:
     }
 
     void start_test(void *args = nullptr) override {
-        std::cout << "KVStore Correctness Test" << std::endl;
+        std::cout << "KVStore Scan Test" << std::endl;
 
         std::cout << "[Simple Test]" << std::endl;
         regular_test(SIMPLE_TEST_MAX);

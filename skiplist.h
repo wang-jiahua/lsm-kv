@@ -32,7 +32,7 @@ class SkipList {
 
         [[nodiscard]] int get_level() const { return level_; }
 
-        [[nodiscard]] bool get_deleted() const { return deleted_; }
+        [[nodiscard]] bool is_deleted() const { return deleted_; }
 
         void set_deleted(bool deleted) { deleted_ = deleted; }
 
@@ -52,6 +52,8 @@ public:
     void put(uint64_t key, const std::string &s);
 
     std::string get(uint64_t key, bool &deleted, bool &found) const;
+
+    void scan(uint64_t lower, uint64_t upper, std::vector<std::pair<uint64_t, std::string>> &result) const;
 
     bool del(uint64_t key, bool inIndex);
 

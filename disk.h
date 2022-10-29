@@ -4,6 +4,7 @@
 #include "data.h"
 #include "skiplist.h"
 #include "filter.h"
+#include "batch.h"
 
 #include <queue>
 #include <string>
@@ -17,12 +18,8 @@ using Range = std::vector<std::pair<uint64_t, uint64_t>>;
  */
 class MergeNode {
 public:
-    MergeNode(int level,
-              uint64_t filename,
-              IndexTree::iterator iter)
-            : level_(level),
-              filename_(filename),
-              iter_(iter) {}
+    MergeNode(int level, uint64_t filename, IndexTree::iterator iter)
+            : level_(level), filename_(filename), iter_(iter) {}
 
 private:
     friend class Disk;
@@ -43,24 +40,16 @@ private:
 public:
     Disk();
 
-    [[nodiscard]] std::string get(int level,
-                                  uint64_t filename,
-                                  uint64_t offset,
-                                  uint64_t length) const;
+    [[nodiscard]] std::string get(int level, uint64_t filename, uint64_t offset, uint64_t length) const;
 
-    void put(int level,
-             const Data &data,
-             Index &index,
-             Filter &filter);
+    void get(const Batch &batch, std::map<uint64_t, const std::string> &kv) const;
+
+    void put(int level, const Data &data, Index &index, Filter &filter);
 
     void reset();
 
 private:
-    void compact(Index &index,
-                 int level,
-                 Filter &filter);
+    void compact(Index &index, int level, Filter &filter);
 
-    static bool inRange(uint64_t lower,
-                        uint64_t upper,
-                        const Range &range);
+    static bool inRange(uint64_t lower, uint64_t upper, const Range &range);
 };
