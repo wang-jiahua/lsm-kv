@@ -7,7 +7,7 @@
 class CorrectnessTest : public Test {
 private:
     const uint64_t SIMPLE_TEST_MAX = 512U;
-    const uint64_t LARGE_TEST_MAX = 1024U * 4U;
+    const uint64_t LARGE_TEST_MAX = 1024U * 2U;
 
     void regular_test(uint64_t max) {
         uint64_t i;
@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
     std::cout << std::endl;
     (void) std::cout.flush();
 
-    CorrectnessTest test("./data", verbose);
+    CorrectnessTest test("data/", verbose);
 
     test.start_test();
 

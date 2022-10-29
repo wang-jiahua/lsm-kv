@@ -8,6 +8,7 @@
 
 class KVStore : public KVStoreAPI {
 private:
+    const std::string dir_;
     SkipList MemTable;
     Index index;
     Disk disk;

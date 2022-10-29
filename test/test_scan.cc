@@ -7,7 +7,7 @@
 class ScanTest : public Test {
 private:
     const uint64_t SIMPLE_TEST_MAX = 512U;
-    const uint64_t LARGE_TEST_MAX = 1024U * 8U;
+    const uint64_t LARGE_TEST_MAX = 1024U * 2U;
 
     void regular_test(uint64_t max) {
         uint64_t i;
@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
     std::cout << std::endl;
     (void) std::cout.flush();
 
-    ScanTest test("./data", verbose);
+    ScanTest test("data/", verbose);
 
     test.start_test();
 

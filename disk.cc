@@ -6,11 +6,12 @@
 #include <iostream>
 #include <chrono>
 #include <algorithm>
+#include <utility>
 
 namespace fs = std::filesystem;
 
 std::string Disk::get(int level, uint64_t filename, uint64_t offset, uint64_t length) const {
-    std::ifstream file("data/" + std::to_string(level) + "/" + std::to_string(filename),
+    std::ifstream file(dir_ + std::to_string(level) + "/" + std::to_string(filename),
                        std::ios::in | std::ios::binary);
     std::string value;
     (void) file.seekg(offset + sizeof(uint64_t));
@@ -20,7 +21,7 @@ std::string Disk::get(int level, uint64_t filename, uint64_t offset, uint64_t le
 }
 
 void Disk::get(const Batch &batch, std::map<uint64_t, const std::string> &kv) const {
-    std::ifstream file("data/" + std::to_string(batch.level_) + "/" + std::to_string(batch.filename_),
+    std::ifstream file(dir_ + std::to_string(batch.level_) + "/" + std::to_string(batch.filename_),
                        std::ios::in | std::ios::binary);
     for (auto &it: batch.infos_) {
         auto [key, offset, length] = it;
@@ -39,8 +40,8 @@ void Disk::put(int level, const Data &data, Index &index, Filter &filter) {
     std::string filename = std::to_string(fileTimestamp);
     std::ofstream file;
 
-    (void) fs::create_directories("data/" + std::to_string(level));
-    file.open("data/" + std::to_string(level) + "/" + filename, std::ios::out | std::ios::binary);
+    (void) fs::create_directories(dir_ + std::to_string(level));
+    file.open(dir_ + std::to_string(level) + "/" + filename, std::ios::out | std::ios::binary);
 
     std::vector<uint64_t> offsets;
     std::vector<uint64_t> lengths;
@@ -204,7 +205,7 @@ void Disk::compact(Index &index, int level, Filter &filter) {
     // delete merged files
     for (auto &node: toMerge) {
         (void) index.get_level(node.level_).erase(node.filename_);
-        (void) fs::remove("data/" + std::to_string(node.level_) + "/" + std::to_string(node.filename_));
+        (void) fs::remove(dir_ + std::to_string(node.level_) + "/" + std::to_string(node.filename_));
     }
 }
 
@@ -214,7 +215,7 @@ bool Disk::inRange(uint64_t lower, uint64_t upper, const Range &range) {
     });
 }
 
-Disk::Disk() {
+Disk::Disk(const std::string &dir) : dir_(dir) {
     // maximum num of files are 2, 4, 8, 16, 32, ...
     for (int i = 0; i < maxLevel; ++i) {
         maxFileNums[i] = 1U << (i + 1);

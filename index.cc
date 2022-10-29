@@ -57,7 +57,7 @@ Index::put(uint64_t key, int level, const std::string &filename, uint64_t offset
     (void) tree->insert({key, std::make_shared<IndexNode>(offset, length, timestamp, deleted)});
 }
 
-Index::Index() {
+Index::Index(const std::string &dir) : dir_(dir) {
     levels = std::vector<IndexLevel>(maxLevel, IndexLevel());
 }
 
@@ -69,10 +69,10 @@ void Index::reset() {
 }
 
 void Index::recover(Filter &filter) {
-    if (!fs::exists("data")) {
+    if (!fs::exists(dir_)) {
         return;
     }
-    for (auto &p: fs::recursive_directory_iterator("data")) {
+    for (auto &p: fs::recursive_directory_iterator(dir_)) {
         if (fs::is_directory(p)) {
             continue;
         }

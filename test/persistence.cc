@@ -7,7 +7,7 @@
 
 class PersistenceTest : public Test {
 private:
-    const uint64_t TEST_MAX = 1024U * 4U;
+    const uint64_t TEST_MAX = 1024U * 2U;
 
     [[noreturn]] void prepare(uint64_t max) {
         uint64_t i;
@@ -185,7 +185,7 @@ int main(int argc, char *argv[]) {
     usage(argv[0], verbose ? "ON" : "OFF",
           testmode ? "Test Mode" : "Preparation Mode");
 
-    PersistenceTest test("./data", verbose);
+    PersistenceTest test("data/", verbose);
 
     test.start_test(static_cast<void *>(&testmode));
 

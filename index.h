@@ -41,7 +41,7 @@ typedef std::map<uint64_t, std::shared_ptr<IndexTree>, std::greater<>> IndexLeve
 
 class Index {
 public:
-    Index();
+    Index(const std::string &dir);
 
     ~Index();
 
@@ -69,6 +69,7 @@ public:
     IndexLevel &get_level(size_t level) { return levels[level]; }
 
 private:
+    const std::string &dir_;
     std::vector<IndexLevel> levels;
     const int maxLevel = 20;
 };

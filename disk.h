@@ -31,6 +31,8 @@ private:
 
 class Disk {
 private:
+    const std::string &dir_;
+
     static const int maxLevel = 20;
 
     uint64_t maxFileNums[maxLevel]{};
@@ -38,7 +40,7 @@ private:
     const uint64_t MAX_FILE_SIZE = 2U * 1024U * 1024U; // 2MB
 
 public:
-    Disk();
+    Disk(const std::string &dir);
 
     [[nodiscard]] std::string get(int level, uint64_t filename, uint64_t offset, uint64_t length) const;
 
