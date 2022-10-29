@@ -19,7 +19,6 @@ The following tests may require about 10 GB space.
 
 ```sh
 ./correctness
-rm -rf data
 ```
 
 ### Persistence Test
@@ -28,13 +27,12 @@ rm -rf data
 ./persistence
 # kill the process following the prompt
 ./persistence -t
-rm -rf data
 ```
 
 ## TODO
 
 - [x] use Bloom filter to accelerate key search
-- [ ] implement range search
+- [x] implement range search
 - [ ] add write-ahead log
 - [ ] add immutable MemTable
 - [ ] redesign the structure of SSTable (integrate Bloom filter bits and metadata into files)
