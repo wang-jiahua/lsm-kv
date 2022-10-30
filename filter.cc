@@ -25,7 +25,7 @@ bool Filter::contains(uint64_t key, int level, uint64_t filename) const {
 }
 
 void Filter::reset() {
-    filterLevels.clear();
+    filterLevels = std::vector<FilterLevel>(maxLevel);
 }
 
 void Filter::recover() {

@@ -5,7 +5,7 @@
 
 namespace fs = std::filesystem;
 
-KVStore::KVStore(const std::string &dir) : KVStoreAPI(dir), dir_(dir), index(dir), disk(dir) {
+KVStore::KVStore(const std::string &dir) : KVStoreAPI(dir), dir_(dir), MemTable(), index(dir), disk(dir), filter() {
     index.recover(filter);
 }
 
