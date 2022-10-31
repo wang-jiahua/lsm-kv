@@ -20,6 +20,8 @@ add_executable(write_rand skiplist.cc util/MurmurHash3.cc bloom.cc filter.cc ind
 
 add_executable(read_seq skiplist.cc util/MurmurHash3.cc bloom.cc filter.cc index.cc disk.cc kvstore.cc benchmark/read_seq.cc)
 
+add_executable(read_rand skiplist.cc util/MurmurHash3.cc bloom.cc filter.cc index.cc disk.cc kvstore.cc benchmark/read_rand.cc)
+
 enable_testing()
 
 add_test(NAME correctness COMMAND correctness)
@@ -37,3 +39,5 @@ add_test(NAME write_seq COMMAND write_seq)
 add_test(NAME write_rand COMMAND write_rand)
 
 add_test(NAME read_seq COMMAND read_seq)
+
+add_test(NAME read_rand COMMAND read_rand)
