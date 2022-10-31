@@ -14,6 +14,8 @@ add_executable(test_bloom skiplist.cc util/MurmurHash3.cc bloom.cc filter.cc ind
 
 add_executable(test_scan skiplist.cc util/MurmurHash3.cc bloom.cc filter.cc index.cc batch.h disk.cc kvstore.cc test/test_scan.cc)
 
+add_executable(write_seq skiplist.cc util/MurmurHash3.cc bloom.cc filter.cc index.cc disk.cc kvstore.cc benchmark/write_seq.cc)
+
 enable_testing()
 
 add_test(NAME correctness COMMAND correctness)
@@ -25,3 +27,5 @@ add_test(NAME persistence-recover COMMAND persistence -t)
 add_test(NAME test_bloom COMMAND test_bloom)
 
 add_test(NAME test_scan COMMAND test_scan)
+
+add_test(NAME write_seq COMMAND write_seq)
