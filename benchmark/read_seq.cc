@@ -2,7 +2,6 @@
 #include <iostream>
 #include <string>
 #include <filesystem>
-#include <random>
 
 #include "bench.h"
 
@@ -15,13 +14,13 @@ private:
     const size_t nr_bytes = nr_ops * bytes_per_op;
 
     void regular_test() {
-        std::random_device device;
-        std::default_random_engine engine(device());
-        std::uniform_int_distribution<uint64_t> uniform_dist(0U, nr_ops - 1U);
-        start();
         uint64_t i;
         for (i = 0U; i < nr_ops; ++i) {
-            store.put(uniform_dist(engine), std::string(bytes_per_op, 's'));
+            store.put(i, std::string(bytes_per_op, 's'));
+        }
+        start();
+        for (i = 0U; i < nr_ops; ++i) {
+            (void) store.get(i);
         }
         stop();
         report(nr_ops, nr_bytes);
@@ -33,7 +32,7 @@ public:
     }
 
     void start_test(void *args = nullptr) override {
-        std::cout << "KVStore Random Write Bench" << std::endl;
+        std::cout << "KVStore Sequential Read Bench" << std::endl;
         (void) fs::remove_all("data/");
         regular_test();
         (void) fs::remove_all("data/");
