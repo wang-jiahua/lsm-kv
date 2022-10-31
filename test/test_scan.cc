@@ -1,8 +1,11 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
+#include <filesystem>
 
 #include "test.h"
+
+namespace fs = std::filesystem;
 
 class ScanTest : public Test {
 private:
@@ -56,12 +59,15 @@ public:
 
     void start_test(void *args = nullptr) override {
         std::cout << "KVStore Scan Test" << std::endl;
+        (void) fs::remove_all("data/");
 
         std::cout << "[Simple Test]" << std::endl;
         regular_test(SIMPLE_TEST_MAX);
+        (void) fs::remove_all("data/");
 
         std::cout << "[Large Test]" << std::endl;
         regular_test(LARGE_TEST_MAX);
+        (void) fs::remove_all("data/");
     }
 };
 

@@ -2,14 +2,17 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
+#include <filesystem>
 
 #include "test.h"
+
+namespace fs = std::filesystem;
 
 class PersistenceTest : public Test {
 private:
     const uint64_t TEST_MAX = 1024U * 2U;
 
-    [[noreturn]] void prepare(uint64_t max) {
+    void prepare(uint64_t max) {
         uint64_t i;
         // Clean up
         store.reset();
@@ -77,29 +80,29 @@ private:
                   << std::endl;
         (void) std::cout.flush();
 
-        while (true) {
-            volatile uint64_t dummy;
-            for (i = 0U; i <= 1024U; ++i) {
-                // The loop slows down the program
-                for (uint64_t j = 0U; j <= 1000U; ++j) {
-                    dummy = j;
-                }
-
-                (void) store.del(max + i);
-
-                for (uint64_t j = 0U; j <= 1000U; ++j) {
-                    dummy = j;
-                }
-
-                store.put(max + i, std::string(1024U, '.'));
-
-                for (uint64_t j = 0U; j <= 1000U; ++j) {
-                    dummy = j;
-                }
-
-                store.put(max + i, std::string(512U, 'x'));
-            }
-        }
+//        while (true) {
+//            volatile uint64_t dummy;
+//            for (i = 0U; i <= 1024U; ++i) {
+//                // The loop slows down the program
+//                for (uint64_t j = 0U; j <= 1000U; ++j) {
+//                    dummy = j;
+//                }
+//
+//                (void) store.del(max + i);
+//
+//                for (uint64_t j = 0U; j <= 1000U; ++j) {
+//                    dummy = j;
+//                }
+//
+//                store.put(max + i, std::string(1024U, '.'));
+//
+//                for (uint64_t j = 0U; j <= 1000U; ++j) {
+//                    dummy = j;
+//                }
+//
+//                store.put(max + i, std::string(512U, 'x'));
+//            }
+//        }
     }
 
     void test(uint64_t max) {
@@ -142,7 +145,9 @@ public:
         if (testmode) {
             std::cout << "<<Test Mode>>" << std::endl;
             test(TEST_MAX);
+            (void) fs::remove_all("data/");
         } else {
+            (void) fs::remove_all("data/");
             std::cout << "<<Preparation Mode>>" << std::endl;
             prepare(TEST_MAX);
         }

@@ -1,17 +1,11 @@
-#include <filesystem>
-
 #include "kvstore.h"
 #include "batch.h"
-
-namespace fs = std::filesystem;
 
 KVStore::KVStore(const std::string &dir) : KVStoreAPI(dir), dir_(dir), MemTable(), index(dir), disk(dir), filter() {
     index.recover(filter);
 }
 
-KVStore::~KVStore() {
-    (void) fs::remove_all(dir_);
-}
+KVStore::~KVStore() = default;
 
 /**
  * Insert/Update the key-value pair.
