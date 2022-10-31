@@ -1,32 +1,14 @@
-# KVStore using Log-structured Merge Tree
+# LSM-KV
 
-Project for SJTU SE2322 Advanced Data Structure
+KVStore implemented in Log-structured Merge Tree, based on SJTU SE2322 Advanced Data Structure.
 
-## Build
+## Build and Test
 
 ```sh
-mkdir build
+cmake -DCMAKE_BUILD_TYPE=Release -Bbuild
 cd build
-cmake ..
-make
-```
-
-## Test
-
-The following tests may require about 10 GB space.
-
-### Correctness Test
-
-```sh
-./correctness
-```
-
-### Persistence Test
-
-```sh
-./persistence
-# kill the process following the prompt
-./persistence -t
+cmake --build .
+ctest
 ```
 
 ## TODO
