@@ -2,9 +2,11 @@ cmake_minimum_required(VERSION 3.16)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(CMAKE_CXX_FLAGS "-Wall")
+set(CMAKE_CXX_FLAGS "-Wall -pthread")
 
 project(lsm-kv)
+
+find_package(Threads REQUIRED)
 
 add_executable(correctness skiplist.cc util/MurmurHash3.cc bloom.cc filter.cc index.cc disk.cc kvstore.cc test/correctness.cc)
 
@@ -22,13 +24,15 @@ add_executable(read_seq skiplist.cc util/MurmurHash3.cc bloom.cc filter.cc index
 
 add_executable(read_rand skiplist.cc util/MurmurHash3.cc bloom.cc filter.cc index.cc disk.cc kvstore.cc benchmark/read_rand.cc)
 
+target_link_libraries(correctness PRIVATE Threads::Threads)
+
 enable_testing()
 
 add_test(NAME correctness COMMAND correctness)
 
 add_test(NAME persistence-prepare COMMAND persistence)
 
-add_test(NAME persistence-recover COMMAND persistence -t)
+add_test(NAME persistence-recover COMMAND persistence -t -v)
 
 add_test(NAME test_bloom COMMAND test_bloom)
 

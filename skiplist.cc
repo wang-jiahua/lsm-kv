@@ -102,7 +102,7 @@ void SkipList::scan(uint64_t lower, uint64_t upper, std::vector<std::pair<uint64
     }
 }
 
-bool SkipList::del(uint64_t key, bool inIndex) {
+bool SkipList::del(uint64_t key, bool in_index, bool in_immutable, bool not_in_immutable) {
     std::shared_ptr<Node> current = head;
     std::shared_ptr<Node> update[maxLevel + 1];
 
@@ -130,42 +130,46 @@ bool SkipList::del(uint64_t key, bool inIndex) {
         size -= sizeof(key) * 2U + (current->get_value()).length() + 4U;
         return true;
     }
-    // if key not in memtable or disk
-    if (!inIndex) {
-        return false;
-    }
-    // if key in disk only, insert new node
-    int randomLevel = getRandomLevel();
-    std::shared_ptr<Node> node = std::make_shared<Node>(key, "", randomLevel, true);
+    // key not in memtable
+    // if key in immutable memtable or in disk only, insert new node
+    if (in_immutable || (not_in_immutable && in_index)) {
+        int randomLevel = getRandomLevel();
+        std::shared_ptr<Node> node = std::make_shared<Node>(key, "", randomLevel, true);
 
-    if (randomLevel > level) {
-        for (int i = level + 1; i <= randomLevel; ++i) {
-            update[i] = head;
+        if (randomLevel > level) {
+            for (int i = level + 1; i <= randomLevel; ++i) {
+                update[i] = head;
+            }
+            level = randomLevel;
         }
-        level = randomLevel;
-    }
 
-    for (int i = 0; i <= randomLevel; ++i) {
-        node->set_forward(i, update[i]->get_forward(i));
-        update[i]->set_forward(i, node);
-    }
+        for (int i = 0; i <= randomLevel; ++i) {
+            node->set_forward(i, update[i]->get_forward(i));
+            update[i]->set_forward(i, node);
+        }
 
-    size += sizeof(uint64_t) + sizeof(uint64_t) + sizeof(uint64_t); // key + value(empty) + key + offset
-    return true;
+        size += sizeof(uint64_t) + sizeof(uint64_t) + sizeof(uint64_t); // key + value(empty) + key + offset
+        return true;
+    }
+    return false;
 }
 
 void SkipList::reset() {
-    std::shared_ptr<Node> current = head->get_forward(0);
-    for (int i = 0; i < maxLevel; i++) {
-        head->set_forward(i, nullptr);
-    }
-    while (current != nullptr) {
-        std::shared_ptr<Node> next = current->get_forward(0);
-        for (int i = 0; i < current->get_level(); i++) {
-            current->set_forward(i, nullptr);
+    if (head != nullptr) {
+        std::shared_ptr<Node> current = head->get_forward(0);
+        for (int i = 0; i < maxLevel; i++) {
+            head->set_forward(i, nullptr);
         }
-        current = next;
+        while (current != nullptr) {
+            std::shared_ptr<Node> next = current->get_forward(0);
+            for (int i = 0; i < current->get_level(); i++) {
+                current->set_forward(i, nullptr);
+            }
+            current = next;
+        }
     }
+    head = std::make_shared<Node>(ULLONG_MAX, std::string(), maxLevel);
+    level = 0;
     size = 0U;
 }
 

@@ -47,6 +47,10 @@ class SkipList {
 public:
     SkipList();
 
+    SkipList(SkipList &&) noexcept = default;
+
+    SkipList &operator=(SkipList &&) noexcept = default;
+
     ~SkipList();
 
     void put(uint64_t key, const std::string &s);
@@ -55,7 +59,7 @@ public:
 
     void scan(uint64_t lower, uint64_t upper, std::vector<std::pair<uint64_t, std::string>> &result) const;
 
-    bool del(uint64_t key, bool inIndex);
+    bool del(uint64_t key, bool in_index, bool in_immutable, bool not_in_immutable);
 
     void reset();
 

@@ -5,16 +5,23 @@
 #include "kvstore_api.h"
 #include "skiplist.h"
 #include "filter.h"
+#include <future>
 
 class KVStore : public KVStoreAPI {
 private:
     const std::string dir_;
-    SkipList MemTable;
+    SkipList memtable;
+    SkipList imm_memtable;
     Index index;
     Disk disk;
     Filter filter;
+    std::future<void> flush = std::async(std::launch::async, []() { return; });
 
     const uint64_t MAX_MEMTABLE_SIZE = 2U * 1024U * 1024U; // 2MB
+
+    uint64_t maxFileNums[maxLevel]{};
+
+    const uint64_t MAX_FILE_SIZE = 2U * 1024U * 1024U; // 2MB
 
 public:
     explicit KVStore(const std::string &dir);
@@ -33,4 +40,10 @@ public:
     void reset() override;
 
     void print() const;
+
+    void write_to_disk(int level, const Data &data);
+
+    void compact(int level);
+
+    bool inRange(uint64_t lower, uint64_t upper, const Range &range);
 };

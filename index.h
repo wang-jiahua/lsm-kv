@@ -36,8 +36,8 @@ private:
     bool deleted_;
 };
 
-typedef std::map<uint64_t, std::shared_ptr<IndexNode>> IndexTree;                  // key -> info
-typedef std::map<uint64_t, std::shared_ptr<IndexTree>, std::greater<>> IndexLevel; // filename -> tree
+typedef std::map<uint64_t, std::shared_ptr<IndexNode>> IndexTree;                  // key -> node info
+typedef std::map<uint64_t, std::shared_ptr<IndexTree>, std::greater<>> IndexLevel; // filename -> index tree
 
 class Index {
 public:

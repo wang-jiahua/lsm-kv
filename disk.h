@@ -24,6 +24,8 @@ public:
 private:
     friend class Disk;
 
+    friend class KVStore;
+
     int level_;
     uint64_t filename_;
     IndexTree::iterator iter_;
