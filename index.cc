@@ -15,10 +15,9 @@ void Index::get(uint64_t key, int &level, uint64_t &filename, uint64_t &offset, 
         // search from the latest one
         for (auto &indexKV: levels[level]) {
             uint64_t timestamp = indexKV.first;
-            std::shared_ptr<IndexTree> indexTree = indexKV.second;
-            auto iter = indexTree->find(key);
+            auto iter = indexKV.second->find(key);
             // if key found in this file
-            if (iter != indexTree->end()) {
+            if (iter != indexKV.second->end()) {
                 filename = timestamp;
                 offset = iter->second->offset_;
                 length = iter->second->length_;
