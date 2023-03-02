@@ -32,7 +32,6 @@ public:
         std::cout << "KVStore Sequential Write Bench" << std::endl;
         (void) fs::remove_all("data");
         regular_test();
-//        (void) fs::remove_all("data");
     }
 };
 

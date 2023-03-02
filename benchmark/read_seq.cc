@@ -7,7 +7,7 @@
 
 namespace fs = std::filesystem;
 
-class WriteSeq : public Bench {
+class ReadSeq : public Bench {
 private:
     const size_t nr_ops = 1024U * 1024U;
     const size_t bytes_per_op = 1U;
@@ -27,7 +27,7 @@ private:
     }
 
 public:
-    explicit WriteSeq(const std::string &dir, bool v = true)
+    explicit ReadSeq(const std::string &dir, bool v = true)
             : Bench(dir, v) {
     }
 
@@ -35,7 +35,6 @@ public:
         std::cout << "KVStore Sequential Read Bench" << std::endl;
         (void) fs::remove_all("data");
         regular_test();
-//        (void) fs::remove_all("data");
     }
 };
 
@@ -50,7 +49,7 @@ int main(int argc, char *argv[]) {
 
     (void) fs::remove_all("data");
 
-    WriteSeq test("data", verbose);
+    ReadSeq test("data", verbose);
 
     test.start_test();
 
