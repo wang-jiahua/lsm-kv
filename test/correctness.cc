@@ -88,6 +88,8 @@ int main(int argc, char *argv[]) {
     std::cout << std::endl;
     (void) std::cout.flush();
 
+    (void) fs::remove_all("data");
+
     CorrectnessTest test("data", verbose);
 
     test.start_test();

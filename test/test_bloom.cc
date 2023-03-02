@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
     std::cout << std::endl;
     (void) std::cout.flush();
 
-    BloomTest test("data/", verbose);
+    BloomTest test("data", verbose);
 
     test.start_test();
 
