@@ -1,6 +1,6 @@
 # LSM-KV
 
-KVStore implemented in Log-structured Merge Tree, based on SJTU SE2322 Advanced Data Structure.
+Key-Value Storage implemented in Log-structured Merge Tree.
 
 ## Build and Test
 
@@ -15,8 +15,6 @@ ctest
 
 - [x] use Bloom filter to accelerate key search
 - [x] implement range search
-- [ ] add write-ahead log
-- [ ] add immutable MemTable
+- [x] add write-ahead wal
+- [x] add immutable MemTable
 - [ ] redesign the structure of SSTable (integrate Bloom filter bits and metadata into files)
-- [ ] use LRU cache instead of caching all indices
-- [ ] use lazy recovery
