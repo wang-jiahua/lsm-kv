@@ -84,7 +84,7 @@ void Index::recover(Filter &filter) {
         (void) file.seekg(-sizeof(uint64_t), std::ios_base::end);
         (void) file.read(reinterpret_cast<char *>(&n), sizeof(uint64_t));
 
-        std::size_t pos = path.find('/');
+        std::size_t pos = path.find(fs::path::preferred_separator);
         path = path.substr(pos + 1U, path.size());
 
         for (uint64_t i = 1U; i <= n; i++) {
@@ -101,7 +101,7 @@ void Index::recover(Filter &filter) {
             (void) file.seekg(offset + sizeof(uint64_t));
             (void) std::getline(file, s, '\0');
 
-            pos = path.find('/');
+            pos = path.find(fs::path::preferred_separator);
             int level = std::stoi(path.substr(0, pos));
             std::string filename = path.substr(pos + 1, path.size());
 

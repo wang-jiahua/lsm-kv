@@ -59,16 +59,23 @@ public:
     }
 
     void start_test(void *args = nullptr) override {
+//        for (auto &p: fs::recursive_directory_iterator(dir)) {
+//            if (fs::is_directory(p)) {
+//                continue;
+//            }
+//            std::string path = p.path().string();
+//        }
         std::cout << "KVStore Correctness Test" << std::endl;
-        (void) fs::remove_all("data/");
+        fs::path path = "data";
+        (void) fs::remove_all(path);
 
         std::cout << "[Simple Test]" << std::endl;
         regular_test(SIMPLE_TEST_MAX);
-        (void) fs::remove_all("data/");
+        (void) fs::remove_all(path);
 
         std::cout << "[Large Test]" << std::endl;
         regular_test(LARGE_TEST_MAX);
-        (void) fs::remove_all("data/");
+//        (void) fs::remove_all(path);
     }
 };
 
@@ -81,7 +88,7 @@ int main(int argc, char *argv[]) {
     std::cout << std::endl;
     (void) std::cout.flush();
 
-    CorrectnessTest test("data/", verbose);
+    CorrectnessTest test("data", verbose);
 
     test.start_test();
 

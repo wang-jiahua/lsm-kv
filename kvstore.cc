@@ -157,8 +157,11 @@ void KVStore::write_to_disk(int level, const Data &data) {
     std::string filename = std::to_string(fileTimestamp);
     std::ofstream file;
 
-    (void) fs::create_directories(dir_ + std::to_string(level));
-    file.open(dir_ + std::to_string(level) + "/" + filename, std::ios::out | std::ios::binary);
+    fs::path path = dir_;
+    path /= std::to_string(level);
+    (void) fs::create_directories(path);
+    path /= filename;
+    file.open(path, std::ios::out | std::ios::binary);
 
     std::vector<uint64_t> offsets;
     std::vector<uint64_t> lengths;
@@ -322,7 +325,10 @@ void KVStore::compact(int level) {
     // delete merged files
     for (auto &node: toMerge) {
         (void) index.get_level(node.level_).erase(node.filename_);
-        (void) fs::remove(dir_ + std::to_string(node.level_) + "/" + std::to_string(node.filename_));
+        fs::path path = dir_;
+        path /= std::to_string(node.level_);
+        path /= std::to_string(node.filename_);
+        (void) fs::remove(path);
     }
 }
 

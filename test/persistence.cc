@@ -145,9 +145,9 @@ public:
         if (testmode) {
             std::cout << "<<Test Mode>>" << std::endl;
             test(TEST_MAX);
-            (void) fs::remove_all("data/");
+            (void) fs::remove_all("data");
         } else {
-            (void) fs::remove_all("data/");
+            (void) fs::remove_all("data");
             std::cout << "<<Preparation Mode>>" << std::endl;
             prepare(TEST_MAX);
         }
@@ -158,8 +158,7 @@ void usage(const char *prog, const char *verb, const char *mode) {
     std::cout << "Usage: " << prog << " [-t] [-v]" << std::endl;
     std::cout << "  -t: test mode for persistence test,"
                  " if -t is not given, the program only prepares data for test."
-                 " [currently "
-              << mode << "]" << std::endl;
+                 " [currently " << mode << "]" << std::endl;
     std::cout << "  -v: print extra info for failed tests [currently ";
     std::cout << verb << "]" << std::endl;
     std::cout << std::endl;
@@ -187,10 +186,9 @@ int main(int argc, char *argv[]) {
         usage(argv[0], "OFF", "Preparation Mode");
         exit(-1);
     }
-    usage(argv[0], verbose ? "ON" : "OFF",
-          testmode ? "Test Mode" : "Preparation Mode");
+    usage(argv[0], verbose ? "ON" : "OFF", testmode ? "Test Mode" : "Preparation Mode");
 
-    PersistenceTest test("data/", verbose);
+    PersistenceTest test("data", verbose);
 
     test.start_test(static_cast<void *>(&testmode));
 

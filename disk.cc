@@ -11,8 +11,12 @@
 namespace fs = std::filesystem;
 
 std::string Disk::get(int level, uint64_t filename, uint64_t offset, uint64_t length) const {
-    std::ifstream file(dir_ + std::to_string(level) + "/" + std::to_string(filename),
-                       std::ios::in | std::ios::binary);
+    fs::path path = dir_;
+    path /= std::to_string(level);
+    path /= std::to_string(filename);
+    std::ifstream file(path, std::ios::in | std::ios::binary);
+//    std::ifstream file(dir_ + std::to_string(level) + "/" + std::to_string(filename),
+//                       std::ios::in | std::ios::binary);
     std::string value;
     (void) file.seekg(offset + sizeof(uint64_t));
     (void) std::getline(file, value, '\0');
@@ -21,8 +25,12 @@ std::string Disk::get(int level, uint64_t filename, uint64_t offset, uint64_t le
 }
 
 void Disk::get(const Batch &batch, std::map<uint64_t, const std::string> &kv) const {
-    std::ifstream file(dir_ + std::to_string(batch.level_) + "/" + std::to_string(batch.filename_),
-                       std::ios::in | std::ios::binary);
+    fs::path path = dir_;
+    path /= std::to_string(batch.level_);
+    path /= std::to_string(batch.filename_);
+    std::ifstream file(path, std::ios::in | std::ios::binary);
+//    std::ifstream file(dir_ + std::to_string(batch.level_) + "/" + std::to_string(batch.filename_),
+//                       std::ios::in | std::ios::binary);
     for (auto &it: batch.infos_) {
         auto [key, offset, length] = it;
         std::string value;
@@ -40,8 +48,11 @@ void Disk::put(int level, const Data &data, Index &index, Filter &filter) {
     std::string filename = std::to_string(fileTimestamp);
     std::ofstream file;
 
-    (void) fs::create_directories(dir_ + std::to_string(level));
-    file.open(dir_ + std::to_string(level) + "/" + filename, std::ios::out | std::ios::binary);
+    fs::path path = dir_;
+    path /= std::to_string(level);
+    (void) fs::create_directories(path);
+    path /= filename;
+    file.open(path, std::ios::out | std::ios::binary);
 
     std::vector<uint64_t> offsets;
     std::vector<uint64_t> lengths;
@@ -205,7 +216,10 @@ void Disk::compact(Index &index, int level, Filter &filter) {
     // delete merged files
     for (auto &node: toMerge) {
         (void) index.get_level(node.level_).erase(node.filename_);
-        (void) fs::remove(dir_ + std::to_string(node.level_) + "/" + std::to_string(node.filename_));
+        fs::path path = dir_;
+        path /= std::to_string(node.level_);
+        path /= std::to_string(node.filename_);
+        (void) fs::remove(path);
     }
 }
 
