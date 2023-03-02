@@ -68,17 +68,15 @@ private:
 
         report();
 
-        /**
-         * Write 10MB data to drain previous data out of memory.
-         */
-        for (i = 0U; i <= 10240U; ++i) {
-            store.put(max + i, std::string(1024U, 'x'));
-        }
+//        /**
+//         * Write 10MB data to drain previous data out of memory.
+//         */
+//        for (i = 0U; i <= 10240U; ++i) {
+//            store.put(max + i, std::string(1024U, 'x'));
+//        }
 
-        std::cout << "Data is ready, please press ctrl-c/ctrl-d to"
-                     " terminate this program!"
-                  << std::endl;
         (void) std::cout.flush();
+        // then exit as if crush
     }
 
     void test(uint64_t max) {

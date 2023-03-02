@@ -13,6 +13,7 @@ KVStore::KVStore(const std::string &dir) : KVStoreAPI(dir), dir_(dir), memtable(
     for (int i = 0; i < maxLevel; ++i) {
         maxFileNums[i] = 1U << (i + 1);
     }
+    recover_memtable();
     index.recover(filter);
 }
 
@@ -23,11 +24,30 @@ KVStore::~KVStore() = default;
  * No return values for simplicity.
  */
 void KVStore::put(uint64_t key, const std::string &s) {
+    wal("put", key, s);
     memtable.put(key, s);
     // if memtable is full
     if (memtable.getSize() >= MAX_MEMTABLE_SIZE) {
+        std::string walname = "wal";
+        fs::path walpath = dir_;
+        walpath /= walname;
+        std::string immwalname = "immwal";
+        fs::path immwalpath = dir_;
+        immwalpath /= immwalname;
+        // wait for the flush to finish
         flush.wait();
+        // move memtable to immutable memtable
         imm_memtable = std::move(memtable);
+        if (fs::exists(dir_)) {
+            if (fs::exists(immwalpath)) {
+                // remove immutable wal
+                fs::remove(immwalname);
+            }
+            if (fs::exists(walpath)) {
+                // rename wal to immwal
+                fs::rename(walpath, immwalpath);
+            }
+        }
         flush = std::async(std::launch::async, std::bind(&KVStore::write_to_disk, this, 0, imm_memtable.traverse()));
         memtable.reset();
     }
@@ -141,6 +161,7 @@ void KVStore::scan(uint64_t lower, uint64_t upper, std::vector<std::pair<uint64_
  * Returns false iff the key is not found.
  */
 bool KVStore::del(uint64_t key) {
+    wal("del", key, "");
     bool in_index = index.find(key);
 
     bool imm_deleted = false;
@@ -150,8 +171,26 @@ bool KVStore::del(uint64_t key) {
     bool success = memtable.del(key, in_index, in_immutable, !imm_found);
     // if memtable is full
     if (memtable.getSize() >= MAX_MEMTABLE_SIZE) {
+        std::string walname = "wal";
+        fs::path walpath = dir_;
+        walpath /= walname;
+        std::string immwalname = "immwal";
+        fs::path immwalpath = dir_;
+        immwalpath /= immwalname;
+        // wait for the flush to finish
         flush.wait();
+        // move memtable to immutable memtable
         imm_memtable = std::move(memtable);
+        if (fs::exists(dir_)) {
+            if (fs::exists(immwalpath)) {
+                // remove immutable wal
+                fs::remove(immwalname);
+            }
+            if (fs::exists(walpath)) {
+                // rename wal to immwal
+                fs::rename(walpath, immwalpath);
+            }
+        }
         flush = std::async(std::launch::async, std::bind(&KVStore::write_to_disk, this, 0, imm_memtable.traverse()));
         memtable.reset();
     }
@@ -357,4 +396,92 @@ bool KVStore::inRange(uint64_t lower, uint64_t upper, const Range &range) {
     return std::any_of(range.begin(), range.end(), [&](const std::pair<uint64_t, uint64_t> &p) {
         return lower <= p.second && upper >= p.first;
     });
+}
+
+void KVStore::wal(const std::string &method, uint64_t key, const std::string &value) {
+    std::string walname = "wal";
+    std::ofstream file;
+    fs::path path = dir_;
+    if (!fs::exists(path)) {
+        (void) fs::create_directories(path);
+    }
+    path /= walname;
+    file.open(path, std::ios::out | std::ios::binary | std::ios::app); // append to the end of log
+
+    (void) file.write(method.c_str(), method.size()); // method
+    (void) file.write("\0", sizeof(char));
+
+    (void) file.write((char *) (&key), sizeof(uint64_t)); // key
+
+    uint64_t length = value.size();
+    (void) file.write((char *) (&length), sizeof(uint64_t)); // length of value
+
+    (void) file.write(value.c_str(), value.size()); // value
+    (void) file.write("\0", sizeof(char));
+
+    (void) file.flush();
+    file.close();
+}
+
+void KVStore::recover_memtable() {
+    if (!fs::exists(dir_)) {
+        return;
+    }
+    std::vector<std::tuple<std::string, uint64_t, std::string>> ops; // method + key + value
+    std::string immwalname = "immwal";
+    fs::path immwalpath = dir_;
+    immwalpath /= immwalname;
+    if (fs::exists(immwalpath)) {
+        std::ifstream immwal(immwalpath, std::ios::in | std::ios::binary);
+        while (immwal) {
+            std::string method;
+            uint64_t key;
+            uint64_t length;
+            std::string value;
+            // recover method
+            std::getline(immwal, method, '\0');
+            if (method.empty()) {
+                break;
+            }
+            // recover key
+            (void) immwal.read(reinterpret_cast<char *> (&key), sizeof(uint64_t));
+            // recover length of value
+            (void) immwal.read(reinterpret_cast<char *> (&length), sizeof(uint64_t));
+            // recover value
+            (void) std::getline(immwal, value, '\0');
+            ops.emplace_back(method, key, value);
+        }
+    }
+    std::string walname = "wal";
+    fs::path walpath = dir_;
+    walpath /= walname;
+    if (fs::exists(walpath)) {
+        std::ifstream wal(walpath, std::ios::in | std::ios::binary);
+        while (wal) {
+            std::string method;
+            uint64_t key;
+            uint64_t length;
+            std::string value;
+            // recover method
+            std::getline(wal, method, '\0');
+            if (method.empty()) {
+                break;
+            }
+            // recover key
+            (void) wal.read(reinterpret_cast<char *> (&key), sizeof(uint64_t));
+            // recover length of value
+            (void) wal.read(reinterpret_cast<char *> (&length), sizeof(uint64_t));
+            // recover value
+            (void) std::getline(wal, value, '\0');
+            ops.emplace_back(method, key, value);
+        }
+    }
+    for (auto &op: ops) {
+        auto [method, key, value] = op;
+        if (method == "put") {
+            put(key, value);
+        } else if (method == "del") {
+            del(key);
+        }
+    }
 }

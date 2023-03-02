@@ -46,4 +46,8 @@ public:
     void compact(int level);
 
     bool inRange(uint64_t lower, uint64_t upper, const Range &range);
+
+    void wal(const std::string &method, uint64_t key, const std::string &value);
+
+    void recover_memtable();
 };

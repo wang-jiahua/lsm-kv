@@ -86,6 +86,10 @@ void Index::recover(Filter &filter) {
         std::size_t pos = path.find(fs::path::preferred_separator);
         path = path.substr(pos + 1U, path.size());
 
+        if (path == "wal" || path == "immwal") {
+            continue;
+        }
+
         for (uint64_t i = 1U; i <= n; i++) {
             // recover key
             uint64_t key;
