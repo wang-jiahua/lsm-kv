@@ -29,7 +29,6 @@ void KVStore::put(uint64_t key, const std::string &s) {
         flush.wait();
         imm_memtable = std::move(memtable);
         flush = std::async(std::launch::async, std::bind(&KVStore::write_to_disk, this, 0, imm_memtable.traverse()));
-//        flush = std::async(std::launch::async, std::bind(&Disk::put, &disk, 0, imm_memtable.traverse(), index, filter));
         memtable.reset();
     }
 }
@@ -154,7 +153,6 @@ bool KVStore::del(uint64_t key) {
         flush.wait();
         imm_memtable = std::move(memtable);
         flush = std::async(std::launch::async, std::bind(&KVStore::write_to_disk, this, 0, imm_memtable.traverse()));
-//        flush = std::async(std::launch::async, std::bind(&Disk::put, &disk, 0, imm_memtable.traverse(), index, filter));
         memtable.reset();
     }
     return success;

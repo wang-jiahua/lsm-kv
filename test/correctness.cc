@@ -59,12 +59,6 @@ public:
     }
 
     void start_test(void *args = nullptr) override {
-//        for (auto &p: fs::recursive_directory_iterator(dir)) {
-//            if (fs::is_directory(p)) {
-//                continue;
-//            }
-//            std::string path = p.path().string();
-//        }
         std::cout << "KVStore Correctness Test" << std::endl;
         fs::path path = "data";
         (void) fs::remove_all(path);
@@ -75,7 +69,6 @@ public:
 
         std::cout << "[Large Test]" << std::endl;
         regular_test(LARGE_TEST_MAX);
-//        (void) fs::remove_all(path);
     }
 };
 

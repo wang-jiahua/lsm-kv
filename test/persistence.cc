@@ -79,30 +79,6 @@ private:
                      " terminate this program!"
                   << std::endl;
         (void) std::cout.flush();
-
-//        while (true) {
-//            volatile uint64_t dummy;
-//            for (i = 0U; i <= 1024U; ++i) {
-//                // The loop slows down the program
-//                for (uint64_t j = 0U; j <= 1000U; ++j) {
-//                    dummy = j;
-//                }
-//
-//                (void) store.del(max + i);
-//
-//                for (uint64_t j = 0U; j <= 1000U; ++j) {
-//                    dummy = j;
-//                }
-//
-//                store.put(max + i, std::string(1024U, '.'));
-//
-//                for (uint64_t j = 0U; j <= 1000U; ++j) {
-//                    dummy = j;
-//                }
-//
-//                store.put(max + i, std::string(512U, 'x'));
-//            }
-//        }
     }
 
     void test(uint64_t max) {

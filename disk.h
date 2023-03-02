@@ -37,10 +37,6 @@ private:
 
     static const int maxLevel = 20;
 
-    uint64_t maxFileNums[maxLevel]{};
-
-    const uint64_t MAX_FILE_SIZE = 2U * 1024U * 1024U; // 2MB
-
 public:
     Disk(const std::string &dir);
 
@@ -48,12 +44,5 @@ public:
 
     void get(const Batch &batch, std::map<uint64_t, const std::string> &kv) const;
 
-    void put(int level, const Data &data, Index &index, Filter &filter);
-
     void reset();
-
-private:
-    void compact(Index &index, int level, Filter &filter);
-
-    static bool inRange(uint64_t lower, uint64_t upper, const Range &range);
 };
