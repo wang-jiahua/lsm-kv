@@ -34,7 +34,7 @@ public:
      * @param result the result vector to be filled
      */
     virtual void
-    scan(uint64_t lower, uint64_t upper, std::vector<std::pair<uint64_t, const std::string>> &result) const = 0;
+    scan(uint64_t lower, uint64_t upper, std::vector<std::pair<uint64_t, std::string>> &result) const = 0;
 
     /**
      * Delete the given key-value pair if it exists.

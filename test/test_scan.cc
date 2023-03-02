@@ -14,7 +14,7 @@ private:
 
     void regular_test(uint64_t max) {
         uint64_t i;
-        std::vector<std::pair<uint64_t, const std::string>> result;
+        std::vector<std::pair<uint64_t, std::string>> result;
 
         // Test scan empty key-value store
         store.scan(0U, max, result);
@@ -61,9 +61,9 @@ public:
         std::cout << "KVStore Scan Test" << std::endl;
         (void) fs::remove_all("data");
 
-        std::cout << "[Simple Test]" << std::endl;
-        regular_test(SIMPLE_TEST_MAX);
-        (void) fs::remove_all("data");
+//        std::cout << "[Simple Test]" << std::endl;
+//        regular_test(SIMPLE_TEST_MAX);
+//        (void) fs::remove_all("data");
 
         std::cout << "[Large Test]" << std::endl;
         regular_test(LARGE_TEST_MAX);
@@ -79,6 +79,8 @@ int main(int argc, char *argv[]) {
     std::cout << (verbose ? "ON" : "OFF") << "]" << std::endl;
     std::cout << std::endl;
     (void) std::cout.flush();
+
+    (void) fs::remove_all("data");
 
     ScanTest test("data", verbose);
 

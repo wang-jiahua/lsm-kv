@@ -4,6 +4,7 @@
 #include <functional>
 #include <fstream>
 #include <filesystem>
+#include <algorithm>
 
 namespace fs = std::filesystem;
 
@@ -38,17 +39,19 @@ void KVStore::put(uint64_t key, const std::string &s) {
  * An empty string indicates not found.
  */
 std::string KVStore::get(uint64_t key) const {
-    bool deleted = false;
-    bool found = true;
-    const std::string &s = memtable.get(key, deleted, found);
-    if (found) {
-        return s;
+    bool mem_deleted = false;
+    bool mem_found = true;
+    const std::string &value = memtable.get(key, mem_deleted, mem_found);
+    if (mem_found) {
+        return value;
     }
     // if not found in memtable, find in immutable memtable
     if (imm_memtable.getSize() > 0) {
-        const std::string &s = imm_memtable.get(key, deleted, found);
-        if (found) {
-            return s;
+        bool imm_deleted = false;
+        bool imm_found = true;
+        const std::string &value = imm_memtable.get(key, imm_deleted, imm_found);
+        if (imm_found) {
+            return value;
         }
     }
     // if not found in immutable memtable, find in index
@@ -56,8 +59,9 @@ std::string KVStore::get(uint64_t key) const {
     uint64_t filename;
     uint64_t offset = UINT64_MAX;
     uint64_t length = 0U;
-    index.get(key, level, filename, offset, length, deleted);
-    if (offset == UINT64_MAX || deleted) {
+    bool index_deleted = false;
+    index.get(key, level, filename, offset, length, index_deleted);
+    if (offset == UINT64_MAX || index_deleted) {
         return {};
     }
     if (!filter.contains(key, level, filename)) {
@@ -73,29 +77,44 @@ std::string KVStore::get(uint64_t key) const {
  * @param upper the upper bound of the key range (inclusive)
  * @param result the result vector to be filled
  */
-void KVStore::scan(uint64_t lower, uint64_t upper, std::vector<std::pair<uint64_t, const std::string>> &result) const {
+void KVStore::scan(uint64_t lower, uint64_t upper, std::vector<std::pair<uint64_t, std::string>> &result) const {
     result.clear();
     std::map<uint64_t, const std::string> kv;
     std::map<std::pair<int, uint64_t>, Batch> batches;
     // a batch is a collection of information (key, offset, length) in a file
     // we combine multiple readings of a file into one
+    // we must wait for the flush to finish, otherwise the immutable and file may be both empty
+    flush.wait();
     for (uint64_t key = lower; key <= upper; key++) {
-        bool deleted = false;
-        bool found = true;
-        const std::string &s = memtable.get(key, deleted, found);
-        if (found) {
-            if (!s.empty()) {
-                (void) kv.insert({key, s});
+        bool mem_deleted = false;
+        bool mem_found = true;
+        const std::string &value = memtable.get(key, mem_deleted, mem_found);
+        if (mem_found) {
+            if (!value.empty()) {
+                (void) kv.insert({key, value});
             }
             continue;
         }
-        // if not found in memtable, find in index
+        // if not found in memtable, find in immutable memtable
+        if (imm_memtable.getSize() > 0) {
+            bool imm_deleted = false;
+            bool imm_found = true;
+            const std::string &value = memtable.get(key, imm_deleted, imm_found);
+            if (imm_found) {
+                if (!value.empty()) {
+                    (void) kv.insert({key, value});
+                }
+                continue;
+            }
+        }
+        // if not found in immutable memtable, find in index
         int level = -1;
         uint64_t filename;
         uint64_t offset = UINT64_MAX;
         uint64_t length = 0U;
-        index.get(key, level, filename, offset, length, deleted);
-        if (offset == UINT64_MAX || deleted) {
+        bool index_deleted = false;
+        index.get(key, level, filename, offset, length, index_deleted);
+        if (offset == UINT64_MAX || index_deleted) {
             continue;
         }
         if (!filter.contains(key, level, filename)) {
@@ -112,6 +131,10 @@ void KVStore::scan(uint64_t lower, uint64_t upper, std::vector<std::pair<uint64_
     for (auto &it: kv) {
         (void) result.emplace_back(it.first, it.second);
     }
+    std::sort(result.begin(), result.end(), [](const std::pair<uint64_t, std::string> &a,
+                                               const std::pair<uint64_t, std::string> &b) {
+        return a.first < b.first;
+    });
 }
 
 /**

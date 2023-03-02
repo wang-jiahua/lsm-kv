@@ -32,7 +32,7 @@ add_test(NAME correctness COMMAND correctness)
 
 add_test(NAME persistence-prepare COMMAND persistence)
 
-add_test(NAME persistence-recover COMMAND persistence -t -v)
+add_test(NAME persistence-recover COMMAND persistence -t)
 
 add_test(NAME test_bloom COMMAND test_bloom)
 
