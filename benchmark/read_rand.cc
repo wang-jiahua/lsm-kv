@@ -37,9 +37,9 @@ public:
 
     void start_test(void *args = nullptr) override {
         std::cout << "KVStore Random Read Bench" << std::endl;
-        (void) fs::remove_all("data/");
+        (void) fs::remove_all("data");
         regular_test();
-        (void) fs::remove_all("data/");
+//        (void) fs::remove_all("data");
     }
 };
 
@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
     std::cout << std::endl;
     (void) std::cout.flush();
 
-    WriteSeq test("data/", verbose);
+    WriteSeq test("data", verbose);
 
     test.start_test();
 

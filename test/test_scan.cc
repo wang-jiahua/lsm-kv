@@ -59,15 +59,15 @@ public:
 
     void start_test(void *args = nullptr) override {
         std::cout << "KVStore Scan Test" << std::endl;
-        (void) fs::remove_all("data/");
+        (void) fs::remove_all("data");
 
         std::cout << "[Simple Test]" << std::endl;
         regular_test(SIMPLE_TEST_MAX);
-        (void) fs::remove_all("data/");
+        (void) fs::remove_all("data");
 
         std::cout << "[Large Test]" << std::endl;
         regular_test(LARGE_TEST_MAX);
-        (void) fs::remove_all("data/");
+//        (void) fs::remove_all("data");
     }
 };
 
@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
     std::cout << std::endl;
     (void) std::cout.flush();
 
-    ScanTest test("data/", verbose);
+    ScanTest test("data", verbose);
 
     test.start_test();
 
