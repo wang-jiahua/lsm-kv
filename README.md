@@ -18,3 +18,4 @@ ctest
 - [x] add write-ahead wal
 - [x] add immutable MemTable
 - [ ] redesign the structure of SSTable (integrate Bloom filter bits and metadata into files)
+- [ ] flush periodically
